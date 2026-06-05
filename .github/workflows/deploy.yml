@@ -1,0 +1,15 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: Build container, push to ACR, deploy to Container Apps
+      - name: Placeholder
+        run: echo "Deploy pipeline — configure when production-ready"

@@ -1,0 +1,25 @@
+{
+  "en": {
+    "common": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "done": "Done",
+      "loading": "Loading..."
+    },
+    "auth": {
+      "signIn": "Sign In",
+      "signOut": "Sign Out",
+      "signInWithGoogle": "Sign in with Google",
+      "signInWithApple": "Sign in with Apple"
+    },
+    "household": {
+      "create": "Create Household",
+      "join": "Join Household",
+      "leave": "Leave Group",
+      "inviteCode": "Invite Code"
+    }
+  }
+}

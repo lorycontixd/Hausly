@@ -1,0 +1,1 @@
+// Meal domain store (Zustand)

@@ -1,0 +1,191 @@
+
+<h2 class="sr-only">Hausly monorepo project structure — interactive file tree</h2>
+<style>
+:root{--c-dir:#2C2C2A;--c-py:#185FA5;--c-ts:#534AB7;--c-cfg:#854F0B;--c-doc:#5F5E5A;--c-note:var(--color-text-tertiary)}
+@media(prefers-color-scheme:dark){:root{--c-dir:#D3D1C7;--c-py:#85B7EB;--c-ts:#AFA9EC;--c-cfg:#FAC775;--c-doc:#B4B2A9}}
+.tree{font-family:var(--font-mono);font-size:12.5px;line-height:1;padding:4px 0 1rem;overflow-x:auto}
+.tr{display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:4px;white-space:nowrap;min-height:24px;transition:background .1s}
+.tr:hover{background:var(--color-background-secondary)}
+.dir{font-weight:500;color:var(--c-dir);cursor:pointer}
+.tog{width:12px;text-align:center;color:var(--c-note);font-size:9px;transition:transform .15s;flex-shrink:0}
+.tog.cl{transform:rotate(-90deg)}
+.sp{width:12px;flex-shrink:0;display:inline-block}
+.note{font-size:11px;color:var(--c-note);font-family:var(--font-sans)}
+.leg{display:flex;gap:16px;padding:4px 8px 10px;font-size:11px;font-family:var(--font-sans);flex-wrap:wrap}
+.leg span{display:flex;align-items:center;gap:5px;color:var(--color-text-secondary)}
+.leg b{font-weight:600;font-size:13px;line-height:1}
+hr.div{border:none;border-top:1px solid var(--color-border-tertiary);margin:0 8px 8px}
+</style>
+<div class="leg">
+  <span><b style="color:var(--c-dir)">▶</b> directory</span>
+  <span><b style="color:var(--c-py)">●</b> Python</span>
+  <span><b style="color:var(--c-ts)">●</b> TypeScript</span>
+  <span><b style="color:var(--c-cfg)">●</b> config / infra</span>
+  <span><b style="color:var(--c-doc)">●</b> docs</span>
+</div>
+<hr class="div">
+<div class="tree" id="tree"></div>
+<script>
+function fc(n){
+  if(/\.(py)$/.test(n))return'var(--c-py)';
+  if(/\.(ts|tsx|js)$/.test(n))return'var(--c-ts)';
+  if(/\.(toml|ini|json|yml|yaml|bicep)$/.test(n)||/^(Dockerfile|Makefile|LICENSE|\..+)$/.test(n))return'var(--c-cfg)';
+  if(/\.md$/.test(n))return'var(--c-doc)';
+  return null;
+}
+const T=[
+  {n:'CLAUDE.md',note:'context file for Claude Code — project conventions, module map'},
+  {n:'README.md'},{n:'LICENSE'},{n:'.gitignore'},
+  {n:'.env.example',note:'every env var documented — never commit secrets'},
+  {n:'Makefile',note:'start · test · migrate · lint — works across both apps'},
+  {n:'apps/',c:[
+    {n:'mobile/',note:'React Native + Expo',c:[
+      {n:'app/',note:'Expo Router — file-based routes',c:[
+        {n:'(auth)/',c:[{n:'login.tsx'},{n:'register.tsx'},{n:'onboarding.tsx',note:'household type selection + smart defaults'}]},
+        {n:'(tabs)/',c:[
+          {n:'index.tsx',note:'home dashboard — balance summary + active items'},
+          {n:'grocery.tsx'},{n:'expense.tsx'},{n:'meal.tsx'},{n:'chores.tsx'}
+        ]},
+        {n:'_layout.tsx'}
+      ]},
+      {n:'components/',c:[
+        {n:'grocery/'},{n:'expense/'},{n:'meal/'},{n:'chores/'},
+        {n:'ui/',note:'shared design-system primitives (Button, Card, Sheet…)'}
+      ]},
+      {n:'hooks/',note:'useHousehold, useCurrentUser, useOfflineSync…'},
+      {n:'stores/',note:'Zustand — one store per domain module',c:[
+        {n:'groceryStore.ts'},{n:'expenseStore.ts'},
+        {n:'mealStore.ts'},{n:'householdStore.ts'}
+      ]},
+      {n:'services/',c:[
+        {n:'api.ts',note:'typed API client, auth header injection'},
+        {n:'firebase.ts',note:'Firebase Auth init + session management'},
+        {n:'signalr.ts',note:'Azure SignalR client — real-time grocery/expense sync'}
+      ]},
+      {n:'i18n/',note:'externalized strings — i18n-ready from day 1 (§9.1 #7)',c:[{n:'en.json'}]},
+      {n:'assets/'},{n:'constants/'},
+      {n:'app.json',note:'Expo config — bundle ID, plugins, EAS'},
+      {n:'babel.config.js'},{n:'tsconfig.json'},{n:'package.json'}
+    ]},
+    {n:'api/',note:'FastAPI + Python',c:[
+      {n:'hausly/',note:'Python package root',c:[
+        {n:'__init__.py'},
+        {n:'main.py',note:'FastAPI app — mounts all module routers'},
+        {n:'config.py',note:'pydantic-settings — typed env config, single source of truth'},
+        {n:'database.py',note:'async SQLAlchemy engine + session factory (asyncpg)'},
+        {n:'dependencies.py',note:'shared FastAPI deps: auth guard, db session, household check'},
+        {n:'auth/',c:[
+          {n:'__init__.py'},
+          {n:'firebase.py',note:'Firebase Admin SDK — token verification + uid extraction'}
+        ]},
+        {n:'modules/',note:'one sub-package per domain — mirrors the app tabs exactly',c:[
+          {n:'grocery/',note:'4-file pattern repeated in every module',c:[
+            {n:'models.py',note:'SQLAlchemy ORM model'},
+            {n:'schemas.py',note:'Pydantic request / response schemas'},
+            {n:'service.py',note:'business logic — calls SignalR after mutations'},
+            {n:'router.py',note:'FastAPI router, mounted in main.py'}
+          ]},
+          {n:'expense/',note:'same 4-file structure'},
+          {n:'meal/',note:'same 4-file structure'},
+          {n:'chores/',note:'same 4-file structure'},
+          {n:'household/',note:'group mgmt · invites · leaving flow · subscription transfer'},
+          {n:'users/',note:'profile · notification prefs · household memberships'}
+        ]},
+        {n:'realtime/',c:[
+          {n:'__init__.py'},
+          {n:'signalr.py',note:'Azure SignalR hub — broadcasts mutations to all household clients'}
+        ]},
+        {n:'ai/',c:[
+          {n:'__init__.py'},
+          {n:'service.py',note:'AIService class — AI_PROVIDER env var selects Azure OpenAI / other'},
+          {n:'prompts/',note:'prompt templates as .txt / .j2 files — one per AI feature'}
+        ]},
+        {n:'gdpr/',note:'pre-launch requirement (§8 + §9.1 #3) — not backlog',c:[
+          {n:'__init__.py'},
+          {n:'export.py',note:'background task: full household data → JSON + CSV archive'}
+        ]}
+      ]},
+      {n:'migrations/',note:'Alembic — always reviewed before applying',c:[
+        {n:'env.py'},{n:'versions/',note:'auto-generated migration scripts'}
+      ]},
+      {n:'tests/',c:[
+        {n:'conftest.py',note:'fixtures, async test DB, Firebase auth mocking'},
+        {n:'modules/',note:'mirrors hausly/modules/ layout exactly'}
+      ]},
+      {n:'Dockerfile',note:'multi-stage build — dev + prod targets, runs on Container Apps'},
+      {n:'pyproject.toml',note:'uv · ruff (lint+fmt) · pytest · mypy · dep groups (dev/prod)'},
+      {n:'alembic.ini'}
+    ]}
+  ]},
+  {n:'packages/',note:'shared code (TS only — no shared Python needed)',c:[
+    {n:'types/',note:'single source of truth for API contracts — prevents mobile↔API drift',c:[
+      {n:'src/',c:[{n:'index.ts',note:'HouseholdMember · GroceryItem · Expense · MealEntry…'}]},
+      {n:'package.json'},{n:'tsconfig.json'}
+    ]}
+  ]},
+  {n:'infra/',note:'Azure Bicep — IaC for every resource',c:[
+    {n:'main.bicep',note:'orchestrates all modules, accepts environment param'},
+    {n:'modules/',c:[
+      {n:'container-apps.bicep',note:'FastAPI service · scale-to-zero · env vars from Key Vault'},
+      {n:'postgres.bicep',note:'Flexible Server · PgBouncer built-in · RLS for multi-tenancy'},
+      {n:'signalr.bicep',note:'managed WebSocket backplane — no Redis needed'},
+      {n:'storage.bicep',note:'Blob Storage — receipt photos + GDPR export archives'}
+    ]},
+    {n:'parameters/',note:'dev vs prod split enforces §10 cheapest-tier-first rule',c:[
+      {n:'dev.json',note:'Free SignalR · Burstable B1ms Postgres · scale-to-zero (conserves €50 credit)'},
+      {n:'prod.json',note:'production-grade tiers — requires explicit logged decision to promote'}
+    ]}
+  ]},
+  {n:'docs/',c:[
+    {n:'architecture.md',note:'system diagram · data flow · module crosstalk map'},
+    {n:'api-reference.md'},
+    {n:'adr/',note:'Architecture Decision Records — captures the WHY behind §10',c:[
+      {n:'001-tech-stack.md',note:'FastAPI · Expo · Azure · Firebase Auth rationale'},
+      {n:'002-offline-sync.md',note:'last-write-wins v1 · CRDT grocery list v1.1'},
+      {n:'003-financial-mutations.md',note:'user-confirmed only — never automatic (§2.3)'}
+    ]},
+    {n:'hausly-project-plan.md',note:'living brainstorm doc'}
+  ]},
+  {n:'.github/',c:[
+    {n:'workflows/',c:[
+      {n:'api-ci.yml',note:'ruff · mypy · pytest on every PR'},
+      {n:'mobile-ci.yml',note:'tsc · expo prebuild check on every PR'},
+      {n:'deploy.yml',note:'build → push to Container Registry → deploy to Container Apps on main'}
+    ]}
+  ]}
+];
+
+function build(nodes,parent,depth){
+  nodes.forEach(node=>{
+    const isDir=!!node.c;
+    const wrap=document.createElement('div');
+    const row=document.createElement('div');
+    row.className='tr';
+    row.style.paddingLeft=(depth*16+8)+'px';
+    if(isDir){
+      const tog=document.createElement('span');
+      tog.className='tog';tog.textContent='▾';
+      const lbl=document.createElement('span');
+      lbl.className='dir';lbl.textContent=node.n;
+      row.appendChild(tog);row.appendChild(lbl);
+      if(node.note){const nt=document.createElement('span');nt.className='note';nt.textContent='— '+node.note;row.appendChild(nt);}
+      const ch=document.createElement('div');
+      const startClosed=depth>=4;
+      if(startClosed){ch.style.display='none';tog.classList.add('cl');}
+      row.style.cursor='pointer';
+      row.onclick=()=>{const h=ch.style.display==='none';ch.style.display=h?'':'none';tog.classList.toggle('cl',!h);};
+      build(node.c,ch,depth+1);
+      wrap.appendChild(row);wrap.appendChild(ch);
+    } else {
+      const sp=document.createElement('span');sp.className='sp';row.appendChild(sp);
+      const lbl=document.createElement('span');lbl.textContent=node.n;
+      const c=fc(node.n);if(c)lbl.style.color=c;
+      row.appendChild(lbl);
+      if(node.note){const nt=document.createElement('span');nt.className='note';nt.textContent='— '+node.note;row.appendChild(nt);}
+      wrap.appendChild(row);
+    }
+    parent.appendChild(wrap);
+  });
+}
+build(T,document.getElementById('tree'),0);
+</script>

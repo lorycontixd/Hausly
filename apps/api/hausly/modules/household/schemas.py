@@ -1,0 +1,1 @@
+# Household request/response schemas
