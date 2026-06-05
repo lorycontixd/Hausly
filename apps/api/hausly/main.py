@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from hausly.auth.router import router as auth_router
 from hausly.config import settings
+from hausly.modules.household.router import invite_router
+from hausly.modules.household.router import router as household_router
 
 app = FastAPI(
     title="Hausly API",
@@ -20,6 +21,8 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(household_router)
+app.include_router(invite_router)
 
 
 @app.get("/api/health")
