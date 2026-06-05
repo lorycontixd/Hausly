@@ -11,11 +11,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
-
 from hausly.auth.router import router as auth_router
 from hausly.database import get_db
 from hausly.modules.users.models import User
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.fixture

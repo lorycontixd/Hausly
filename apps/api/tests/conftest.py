@@ -4,7 +4,6 @@ import uuid
 from unittest.mock import AsyncMock
 
 import pytest
-
 from hausly.modules.users.models import User
 
 

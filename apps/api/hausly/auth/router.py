@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from hausly.auth.firebase import get_current_user
 from hausly.database import get_db
 from hausly.modules.users.models import User
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 

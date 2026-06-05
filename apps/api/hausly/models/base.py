@@ -1,6 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
+import sqlalchemy as sa
 from sqlmodel import Field, SQLModel
 
 
@@ -8,7 +9,10 @@ class Base(SQLModel):
     """Base model with UUID primary key and created_at timestamp."""
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(UTC),
+        sa_type=sa.DateTime(timezone=True),
+    )
 
 
 class HouseholdScopedBase(Base):

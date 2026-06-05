@@ -3,12 +3,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
 from firebase_admin import credentials
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
-
 from hausly.config import settings
 from hausly.database import get_db
 from hausly.modules.users.models import User
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 _firebase_app: firebase_admin.App | None = None
 _bearer_scheme = HTTPBearer()
