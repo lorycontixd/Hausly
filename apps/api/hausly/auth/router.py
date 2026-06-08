@@ -34,7 +34,7 @@ async def verify_token(
 
     result = await db.execute(
         select(HouseholdMembership, Household)
-        .join(Household, HouseholdMembership.household_id == Household.id)
+        .join(Household)
         .where(
             HouseholdMembership.user_id == current_user.id,
             HouseholdMembership.left_at.is_(None),  # type: ignore[union-attr]
