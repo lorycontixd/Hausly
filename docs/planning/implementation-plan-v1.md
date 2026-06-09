@@ -482,7 +482,7 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 
 ---
 
-## Phase 8 — Backend: Background Jobs (Cron)
+## Phase 8 — Backend: Background Jobs (Cron) [completed]
 
 **Goal:** Implement recurring expense generation and chore assignment generation as scheduled tasks.
 
@@ -512,6 +512,14 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 - Chore assignments generated for 2-week rolling window
 - Overdue blocking prevents new assignments for that chore
 - Jobs are idempotent (safe to re-run)
+
+### Completed:
+- Implemented `process_recurring_expenses` in `hausly/jobs/recurring_expenses.py`: queries due recurring expenses, enforces staleness cap (3 unconfirmed drafts), clones template splits into draft expenses, advances `next_occurrence_date` per RRULE parsing.
+- Implemented `process_chore_assignments` in `hausly/jobs/chore_assignments.py`: iterates active recurring chores, loads assignees, delegates to existing `generate_assignments` service (which handles overdue blocking and idempotency).
+- Implemented job scheduler in `hausly/jobs/__init__.py` using APScheduler `AsyncIOScheduler` with `CronTrigger` (02:00 and 02:05 UTC). Runs both jobs at startup for catch-up. Integrated via FastAPI lifespan context manager.
+- Wired `lifespan_jobs` into `hausly/main.py` as the app lifespan handler.
+- 16 unit tests covering: RRULE parsing, date advancement, draft generation, staleness cap, missing recurrence_rule handling, chore assignment generation, overdue blocking, no-assignees skip, empty-state handling, idempotency (date advancement verification).
+- All 194 tests pass (16 new + 178 existing).
 
 ---
 

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Added (Phase 8 — Background Jobs / Cron)
+- Recurring expense job (`hausly/jobs/recurring_expenses.py`): daily generation of draft expenses from confirmed recurring templates, RRULE parsing (FREQ=DAILY/WEEKLY/MONTHLY), staleness cap (pauses at 3 unconfirmed drafts), automatic `next_occurrence_date` advancement
+- Chore assignment job (`hausly/jobs/chore_assignments.py`): daily generation of assignments for active recurring chores up to 14-day rolling window, delegates to existing `generate_assignments` (overdue blocking, rotation, idempotency)
+- Job scheduler (`hausly/jobs/__init__.py`): APScheduler `AsyncIOScheduler` with CronTrigger (02:00 and 02:05 UTC), startup catch-up run, FastAPI lifespan integration
+- Wired scheduler into `hausly/main.py` via `lifespan_jobs` context manager
+- 16 unit tests covering RRULE parsing, date advancement, draft generation, staleness cap, overdue blocking, empty-state handling
+
 ### Added (Phase 7 — Real-Time SignalR)
 - `SignalRService` class (`hausly/realtime/signalr.py`): Azure SignalR serverless integration with connection string parsing, JWT generation, and fire-and-forget group broadcasting
 - Negotiate endpoint (`POST /api/v1/hubs/household/negotiate`): returns SignalR connection info with auto-join group claim for the user's household

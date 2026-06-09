@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from hausly.auth.router import router as auth_router
 from hausly.config import settings
+from hausly.jobs import lifespan_jobs
 from hausly.modules.chores.router import router as chores_router
 from hausly.modules.expense.router import router as expense_router
 from hausly.modules.grocery.router import router as grocery_router
@@ -15,6 +16,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan_jobs,
 )
 
 app.add_middleware(
