@@ -6,6 +6,7 @@ from hausly.modules.expense.router import router as expense_router
 from hausly.modules.grocery.router import router as grocery_router
 from hausly.modules.household.router import invite_router
 from hausly.modules.household.router import router as household_router
+from hausly.modules.meal.router import router as meal_router
 
 app = FastAPI(
     title="Hausly API",
@@ -27,6 +28,7 @@ app.include_router(household_router)
 app.include_router(invite_router)
 app.include_router(grocery_router)
 app.include_router(expense_router)
+app.include_router(meal_router)
 
 
 @app.get("/api/health")

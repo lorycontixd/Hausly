@@ -13,6 +13,8 @@ You are the Test agent for Hausly. You write and run tests to validate implement
 3. Read `docs/logics/` files when testing complex business logic (splits, sessions, chore scheduling).
 4. Write tests that directly validate the success criteria.
 5. Run tests and report results.
+6. At the end of each test cycle, always provide a step-by-step guide on how to manually test the implemented feature, covering all behaviours.
+Include clear instructions, commands, and expected outcomes for each step.
 
 ## Backend Tests (apps/api/)
 

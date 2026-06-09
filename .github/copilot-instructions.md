@@ -28,7 +28,16 @@ When a task requires reading project documentation:
 - Update docs/docs.md if a new docs file is added or if the purpose of an existing docs file changes.
 - Do not duplicate the same information across multiple docs files unless the information is genuinely needed in more than one place.
 - When in doubt, update the closest source-of-truth document first, then only add cross-references if necessary.
-- When code changes are made, update the relative README.md, CHANGELOG.md, and docs/planning/hausly-project-master-plan.md if the change impacts product scope, architecture, or non-negotiable rules. Keep edits minimal.
+- When code changes are made, update the relative README.md, CHANGELOG.md, and docs/planning/hausly-project-master-plan.md if the change impacts product scope, architecture, or non-negotiable rules. Keep edits minimal. 
+
+### Versioning
+- Version architecture: semantic versioning with MAJOR.MINOR.PATCH
+- API and mobile frontend have separate versioning:
+	- API version is defined in `apps/api/app.py` and used in all route prefixes.
+	- Mobile version is defined in `apps/mobile/app.json` and used for app store releases.
+	- Keep both versions inside documentation files: README.md, docs/planning/hausly-project-master-plan.md, and any relevant docs/logics/ files.
+- When a change is user-facing or impacts the public API, propose a version bump in the documentation and suggest a new version number based on the type of change (MAJOR for breaking changes, MINOR for new features, PATCH for bug fixes).
+- Keep versioning in sync between the codebase and documentation for both API and mobile.
 
 ## Plan-Guard Agent Workflow
 Use the Plan Guard agent before implementation when a task impacts one or more of the following:

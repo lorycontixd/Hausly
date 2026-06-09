@@ -23,9 +23,12 @@ env/
 .env
 .env.local
 .env.*.local
+apps/api/.env
+apps/mobile/.env
 
 # Firebase service account (never commit)
 firebase-sa.json
+apps/api/firebase-sa.json
 *-firebase-adminsdk-*.json
 
 # OS files

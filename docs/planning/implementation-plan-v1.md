@@ -141,7 +141,7 @@ Out of scope for v1: Pinboard, Recipe book, AI features, Analytics dashboard.
 
 ---
 
-## Phase 2 — Backend: Household Management
+## Phase 2 — Backend: Household Management [completed]
 
 **Goal:** Implement household CRUD, membership, invite codes, and the leave flow.
 
@@ -190,9 +190,18 @@ Out of scope for v1: Pinboard, Recipe book, AI features, Analytics dashboard.
 - Module enable/disable reflected in settings
 - RLS policies tested (cross-household query returns empty)
 
+### Completed:
+- Implemented Household, HouseholdSettings, HouseholdMembership models with enums.
+- Created full service layer: create, join, leave, remove, change role, settings update, invite preview, code regeneration.
+- Built router with auth + admin guards, matching all endpoints from api-reference.md.
+- Added `require_module` and `get_household_membership` dependencies.
+- Created migration 002_households with RLS policies and partial unique index.
+- Updated auth/verify to return active household memberships.
+- 9 unit tests covering constraints (single-membership, last-admin, tier limits, invalid modules).
+
 ---
 
-## Phase 3 — Backend: Grocery Module
+## Phase 3 — Backend: Grocery Module [completed]
 
 **Goal:** Full grocery list CRUD, personal items, shopping session completion with expense integration.
 
@@ -235,9 +244,18 @@ Out of scope for v1: Pinboard, Recipe book, AI features, Analytics dashboard.
 - Duplicate detection prevents same-name item in active list
 - Archive list works without creating expense
 
+### Completed:
+- Implemented GroceryList and GroceryItem SQLModel models with all fields from data-models.md.
+- Created schemas: GroceryItemCreate, GroceryItemUpdate, GroceryItemResponse, GroceryListResponse, SessionCompleteRequest, SessionCompleteResponse, ArchiveRequest.
+- Built full service layer: get_active_list (auto-creates), get_items (with personal item filtering), add_items (with case-insensitive duplicate detection), update_item, delete_item, complete_session (with expense draft generation), archive_list.
+- Router with all 7 endpoints, require_module("grocery") guard, auth + membership dependencies.
+- Migration 003_grocery: grocery_lists (with unique active list constraint), grocery_items tables, RLS enabled.
+- 17 unit tests covering: list management, personal item visibility, duplicate detection, CRUD operations, session completion with/without expense, personal item exclusion from expenses, archive flow.
+- All 49 tests pass (17 new + 32 existing).
+
 ---
 
-## Phase 4 — Backend: Expense Module
+## Phase 4 — Backend: Expense Module [completed]
 
 **Goal:** Expense CRUD, splits validation, draft→confirm flow, balance calculation, settlement suggestions.
 
@@ -297,9 +315,18 @@ For each pair (A, B):
 - Settlement algorithm minimizes transactions
 - Grocery integration: session complete creates a proper draft expense
 
+### Completed:
+- Implemented Expense and ExpenseSplit SQLModel models with all fields from data-models.md (status enum, source enum, household_id denormalized on splits for RLS).
+- Created schemas: ExpenseCreate (with splits sum validation), ExpenseUpdate, ExpenseResponse, SplitInput, SplitResponse, BalanceEntry, BalanceResponse, SettlementSuggestion, SettlementResponse.
+- Built full service layer: create_expense (with auto-generated-must-be-draft guard), get_expense, list_expenses (cursor pagination + status/category filters), update_expense (draft-only), confirm_expense, delete_expense (draft-only), get_balances (confirmed + unsettled splits only), get_settlements (greedy minimum-transactions), settle_split (with confirmed-expense check).
+- Router with 9 endpoints: list, create, get, update, confirm, delete, balances, settlements, settle_split — all gated by require_module("expense").
+- Migration 004_expenses: expenses and expense_splits tables with indexes, FKs, and RLS policies.
+- 18 unit tests covering: creation, splits validation, auto-generated-must-be-draft, confirm flow, update restrictions, delete restrictions, balance calculation, settlement algorithm (2 and 3 users), settle_split guards, 404 handling.
+- All 77 tests pass (18 new + 59 existing).
+
 ---
 
-## Phase 5 — Backend: Meal Planner Module
+## Phase 5 — Backend: Meal Planner Module [completed]
 
 **Goal:** Weekly meal diary with slot ownership and headcount.
 
@@ -334,6 +361,15 @@ For each pair (A, B):
 - Only owner/admin can edit/delete
 - Headcount defaults to household member count
 - Member leave deletes their future entries
+
+### Completed:
+- Implemented MealPlanEntry model with MealSlot enum (lunch/dinner), unique constraint on (household_id, date, slot).
+- Created schemas: MealEntryCreate, MealEntryUpdate, MealEntryResponse (with owner_display_name).
+- Built full service layer: get_entries (date range query), create_entry (slot conflict detection, default headcount from member count), update_entry (owner/admin guard), delete_entry (owner/admin guard), on_member_leave (deletes future entries).
+- Router with 4 endpoints: GET (date range), POST (claim slot), PATCH (update), DELETE — all gated by require_module("meal").
+- Migration 005_meals: meal_plan_entries table with unique constraint, indexes, and RLS policy.
+- 13 unit tests covering: date range queries, slot claiming, 409 on conflict, default headcount, owner/admin edit/delete, forbidden for non-owners, 404 handling, member leave cleanup.
+- All 100 tests pass (13 new + 87 existing).
 
 ---
 
