@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Added (Phase 7 — Real-Time SignalR)
+- `SignalRService` class (`hausly/realtime/signalr.py`): Azure SignalR serverless integration with connection string parsing, JWT generation, and fire-and-forget group broadcasting
+- Negotiate endpoint (`POST /api/v1/hubs/household/negotiate`): returns SignalR connection info with auto-join group claim for the user's household
+- Type-safe event wrappers for all 15 real-time event types (grocery, expense, meal, chore, member)
+- Broadcast calls integrated into grocery, expense, meal, and chore routers after successful mutations
+- Graceful degradation: mutations never fail due to SignalR being unavailable (fire-and-forget with warning logs)
+- 18 unit tests for SignalR service (parsing, tokens, broadcasts, error handling, event wrappers)
+
+### Added (Phase 6 — Chore Module)
+- Chore, ChoreAssignee, ChoreAssignment models with RecurrenceUnit (days/weeks/months) and AssignmentStatus (pending/completed/cancelled) enums
+- Chore service: create (creator-in-assignees validation), get/list, update (assignee recomputation), delete (deactivation + future cleanup)
+- Assignment generation: idempotent rolling 14-day window, rotation cycling, overdue blocking
+- Complete assignment: any household member can mark any assignment done; one-off chores auto-deactivate when all resolved
+- Postpone/cancel assignment with status guards
+- Member leave: removes from assignees, deletes future assignments, recomputes rotation, deactivates if sole assignee
+- Router with 9 endpoints under `/api/v1/households/{id}/chores/`, `require_module("chores")` guard
+- Migration 006: chores, chore_assignees, chore_assignments tables with indexes and RLS policies
+- Added python-dateutil dependency for monthly recurrence support
+- 24 unit tests covering all service operations and edge cases
+
 ### Added (Phase 5 — Meal Planner Module)
 - MealPlanEntry model with MealSlot enum (lunch/dinner), unique constraint on (household_id, date, slot)
 - Meal service: get_entries (date range), create_entry (first-come-first-served slot claiming), update/delete (owner/admin only), on_member_leave (future entry cleanup)

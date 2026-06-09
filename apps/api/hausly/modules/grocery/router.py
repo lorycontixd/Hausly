@@ -14,6 +14,7 @@ from hausly.modules.grocery.schemas import (ArchiveRequest, GroceryItemCreate,
 from hausly.modules.grocery.service import GroceryError
 from hausly.modules.household.models import HouseholdMembership
 from hausly.modules.users.models import User
+from hausly.realtime.signalr import signalr_service
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
@@ -62,6 +63,10 @@ async def add_items(
         items = await service.add_items(db, household_id, user.id, items_data)
     except GroceryError as e:
         _handle_service_error(e)
+    for item in items:
+        await signalr_service.grocery_item_added(
+            household_id, GroceryItemResponse.model_validate(item).model_dump(mode="json")
+        )
     return [GroceryItemResponse.model_validate(item) for item in items]
 
 
@@ -78,6 +83,9 @@ async def update_item(
         item = await service.update_item(db, household_id, item_id, user.id, data)
     except GroceryError as e:
         _handle_service_error(e)
+    await signalr_service.grocery_item_updated(
+        household_id, GroceryItemResponse.model_validate(item).model_dump(mode="json")
+    )
     return GroceryItemResponse.model_validate(item)
 
 
@@ -93,6 +101,7 @@ async def delete_item(
         await service.delete_item(db, household_id, item_id, user.id)
     except GroceryError as e:
         _handle_service_error(e)
+    await signalr_service.grocery_item_removed(household_id, str(item_id))
 
 
 @router.post("/session/complete", response_model=SessionCompleteResponse)
@@ -107,6 +116,11 @@ async def complete_session(
         result = await service.complete_session(db, household_id, user.id, data)
     except GroceryError as e:
         _handle_service_error(e)
+    await signalr_service.grocery_session_completed(
+        household_id,
+        [str(i) for i in data.bought_item_ids],
+        str(result.expense_draft_id) if result.expense_draft_id else None,
+    )
     return result
 
 
@@ -124,3 +138,4 @@ async def archive_list(
             detail="Confirmation required to archive the list",
         )
     await service.archive_list(db, household_id)
+    await signalr_service.grocery_list_archived(household_id, str(household_id))

@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from hausly.auth.router import router as auth_router
 from hausly.config import settings
+from hausly.modules.chores.router import router as chores_router
 from hausly.modules.expense.router import router as expense_router
 from hausly.modules.grocery.router import router as grocery_router
 from hausly.modules.household.router import invite_router
 from hausly.modules.household.router import router as household_router
 from hausly.modules.meal.router import router as meal_router
+from hausly.realtime.router import router as realtime_router
 
 app = FastAPI(
     title="Hausly API",
@@ -29,6 +31,8 @@ app.include_router(invite_router)
 app.include_router(grocery_router)
 app.include_router(expense_router)
 app.include_router(meal_router)
+app.include_router(chores_router)
+app.include_router(realtime_router)
 
 
 @app.get("/api/health")

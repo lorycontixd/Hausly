@@ -373,7 +373,7 @@ For each pair (A, B):
 
 ---
 
-## Phase 6 — Backend: Chore Module
+## Phase 6 — Backend: Chore Module [completed]
 
 **Goal:** Full chore system with recurrence, rotation, assignment generation, and overdue blocking.
 
@@ -433,9 +433,19 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 - Member leave correctly recomputes rotation
 - One-off chore auto-deactivates when resolved
 
+### Completed:
+- Implemented Chore, ChoreAssignee, ChoreAssignment SQLModel models with enums (RecurrenceUnit, AssignmentStatus).
+- Created schemas: ChoreCreate (with recurrence validation), ChoreUpdate, ChoreResponse, AssignmentResponse, PostponeRequest (future-date validation).
+- Built full service layer: create_chore (creator-in-assignees validation, initial assignment generation), get_chores, get_chore, update_chore (assignee recomputation), delete_chore (deactivation + cleanup), get_assignments (multi-filter), complete_assignment (with one-off auto-deactivate), postpone_assignment, cancel_assignment, generate_assignments (idempotent, overdue blocking, rotation), on_member_leave (remove assignees, delete futures, recompute rotation, deactivate if sole).
+- Router with 9 endpoints: list chores, create, get, update, delete, list assignments, complete, postpone, cancel — all gated by require_module("chores").
+- Migration 006_chores: chores, chore_assignees, chore_assignments tables with indexes, FKs, and RLS policies.
+- Added python-dateutil dependency for monthly recurrence (relativedelta).
+- 24 unit tests covering: creation, creator validation, one-off chores, get/list, complete (any member), auto-deactivate, postpone, cancel, delete, assignments with filters, generation (one-off shared, overdue blocking, empty assignees), member leave (remove + deactivate), recurrence validation.
+- All 132 tests pass (24 new + 108 existing).
+
 ---
 
-## Phase 7 — Backend: Real-Time (SignalR)
+## Phase 7 — Backend: Real-Time (SignalR) [completed]
 
 **Goal:** Set up Azure SignalR integration to broadcast mutations to household members.
 
@@ -460,6 +470,15 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 - Client can negotiate and connect to SignalR hub
 - Mutations in one client trigger events received by other connected household members
 - Events contain correct payloads matching `docs/api-reference.md`
+
+### Completed:
+- Implemented `SignalRService` class in `hausly/realtime/signalr.py` with connection string parsing, JWT generation (HS256), fire-and-forget broadcasting via Azure SignalR REST API.
+- Created negotiate endpoint (`POST /api/v1/hubs/household/negotiate`) returning `{ url, accessToken }` with group claim for auto-join.
+- Added type-safe event wrappers for all 15 event types from api-reference.md (grocery, expense, meal, chore, member events).
+- Integrated broadcasts into all four module routers (grocery, expense, meal, chores) at the router layer after successful service calls.
+- Graceful degradation: broadcasts are fire-and-forget with warning logging; mutations succeed even if SignalR is down.
+- 18 unit tests covering: connection string parsing, JWT generation, client token structure, broadcast mechanics (success/failure/disabled), and event wrapper correctness.
+- All 165 tests pass (18 new + 147 existing).
 
 ---
 

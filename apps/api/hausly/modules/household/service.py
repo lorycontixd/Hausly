@@ -2,6 +2,7 @@ import secrets
 import uuid
 from datetime import UTC, datetime
 
+from hausly.modules.chores.models import AssignmentStatus, ChoreAssignment
 from hausly.modules.household.models import (Household, HouseholdMembership,
                                              HouseholdSettings, MemberRole,
                                              SubscriptionTier)
@@ -232,9 +233,21 @@ async def leave_household(
                     status_code=400,
                 )
 
-    # TODO: In later phases, query unsettled expenses and pending chores
+    # Query pending chore assignments for the leaving user
+    chore_stmt = select(ChoreAssignment).where(
+        ChoreAssignment.household_id == household_id,
+        ChoreAssignment.assigned_to_user_id == user.id,
+        ChoreAssignment.status == AssignmentStatus.pending,
+    )
+    chore_result = await db.execute(chore_stmt)
+    pending_chore_rows = list(chore_result.scalars().all())
+    pending_chores = [
+        {"assignment_id": str(a.id), "chore_id": str(a.chore_id), "due_date": str(a.due_date)}
+        for a in pending_chore_rows
+    ]
+
+    # TODO: Query unsettled expenses in expense module integration
     unsettled_expenses: list[dict] = []
-    pending_chores: list[dict] = []
 
     membership.left_at = datetime.now(UTC)
     db.add(membership)
@@ -249,6 +262,15 @@ async def leave_household(
         household = await get_household(db, household_id)
         household.archived_at = datetime.now(UTC)
         db.add(household)
+
+    # Trigger module-level cleanup for the leaving member
+    from hausly.modules.chores.service import \
+        on_member_leave as chores_on_member_leave
+    from hausly.modules.meal.service import \
+        on_member_leave as meal_on_member_leave
+
+    await chores_on_member_leave(db, household_id, user.id)
+    await meal_on_member_leave(db, household_id, user.id, datetime.now(UTC).date())
 
     await db.commit()
     return LeaveResponse(
@@ -329,6 +351,13 @@ async def _get_active_membership(
         )
     )
     return result.scalar_one_or_none()
+
+
+async def get_active_membership(
+    db: AsyncSession, user_id: uuid.UUID
+) -> HouseholdMembership | None:
+    """Public wrapper — used by negotiate endpoint."""
+    return await _get_active_membership(db, user_id)
 
 
 async def _get_membership(

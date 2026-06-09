@@ -11,6 +11,7 @@ from hausly.modules.meal.schemas import (MealEntryCreate, MealEntryResponse,
                                          MealEntryUpdate)
 from hausly.modules.meal.service import MealError
 from hausly.modules.users.models import User
+from hausly.realtime.signalr import signalr_service
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -85,6 +86,7 @@ async def create_entry(
     # Owner is always the current user on create
     resp = MealEntryResponse.model_validate(entry)
     resp.owner_display_name = user.display_name
+    await signalr_service.meal_updated(household_id, resp.model_dump(mode="json"))
     return resp
 
 
@@ -103,7 +105,9 @@ async def update_entry(
         )
     except MealError as e:
         _handle_service_error(e)
-    return await _build_response(db, entry, user)
+    resp = await _build_response(db, entry, user)
+    await signalr_service.meal_updated(household_id, resp.model_dump(mode="json"))
+    return resp
 
 
 @router.delete("/{entry_id}", status_code=204)
@@ -120,3 +124,4 @@ async def delete_entry(
         )
     except MealError as e:
         _handle_service_error(e)
+    await signalr_service.meal_removed(household_id, str(entry_id))

@@ -12,6 +12,7 @@ from hausly.modules.expense.schemas import (BalanceResponse, ExpenseCreate,
 from hausly.modules.expense.service import ExpenseError
 from hausly.modules.household.models import HouseholdMembership
 from hausly.modules.users.models import User
+from hausly.realtime.signalr import signalr_service
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(
@@ -54,7 +55,9 @@ async def create_expense(
         expense = await service.create_expense(db, household_id, data)
     except ExpenseError as e:
         _handle_service_error(e)
-    return ExpenseResponse.model_validate(expense)
+    resp = ExpenseResponse.model_validate(expense)
+    await signalr_service.expense_created(household_id, resp.model_dump(mode="json"))
+    return resp
 
 
 @router.get("/balances", response_model=BalanceResponse)
@@ -122,6 +125,7 @@ async def confirm_expense(
         expense = await service.confirm_expense(db, household_id, expense_id)
     except ExpenseError as e:
         _handle_service_error(e)
+    await signalr_service.expense_confirmed(household_id, str(expense_id))
     return ExpenseResponse.model_validate(expense)
 
 
@@ -151,4 +155,5 @@ async def settle_split(
         split = await service.settle_split(db, household_id, split_id)
     except ExpenseError as e:
         _handle_service_error(e)
+    await signalr_service.expense_settled(household_id, str(split_id))
     return SplitResponse.model_validate(split)
