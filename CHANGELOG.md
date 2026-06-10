@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added (Phase 9 — Mobile: Project Setup & Auth)
+- Firebase Auth service (`services/firebase.ts`): Google Sign-In, Apple Sign-In, sign-out, auth state listener, token retrieval
+- Typed API client (`services/api.ts`): auto-injected Bearer token, typed request/error handling, CRUD methods
+- Auth flow screens: login with Google/Apple buttons, register (redirect), onboarding (create/join household)
+- Auth state hook (`hooks/useAuth.ts`) and context provider (`providers/AuthProvider.tsx`)
+- TanStack Query provider (`providers/QueryProvider.tsx`) with stale/GC/retry defaults
+- Root layout auth guard: redirects based on auth status and household membership
+- Added dependencies: expo-apple-authentication, @react-native-google-signin/google-signin, expo-secure-store, expo-crypto
+
 ### Added (Phase 8 — Background Jobs / Cron)
 - Recurring expense job (`hausly/jobs/recurring_expenses.py`): daily generation of draft expenses from confirmed recurring templates, RRULE parsing (FREQ=DAILY/WEEKLY/MONTHLY), staleness cap (pauses at 3 unconfirmed drafts), automatic `next_occurrence_date` advancement
 - Chore assignment job (`hausly/jobs/chore_assignments.py`): daily generation of assignments for active recurring chores up to 14-day rolling window, delegates to existing `generate_assignments` (overdue blocking, rotation, idempotency)

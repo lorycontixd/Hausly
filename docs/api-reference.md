@@ -29,7 +29,7 @@
 **Refresh request:** `{ refresh_token }`
 **Refresh response:** `{ id_token, refresh_token, expires_in }`
 
-Note: Login and logout are handled entirely by the Firebase Auth SDK on the client. The backend only verifies/refreshes tokens — it does not manage sessions.
+Note: Login and logout are handled entirely by the Firebase Auth SDK on the client (Google, Apple, or email+password). The backend only verifies/refreshes tokens — it does not manage sessions or distinguish between sign-in providers.
 
 ---
 

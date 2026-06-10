@@ -151,3 +151,19 @@ export interface ChoreAssignment {
   completed_by_user_id: string | null;
   completed_by_display_name: string | null;
 }
+
+// --- API Responses ---
+
+export interface HouseholdMembership {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface VerifyResponse {
+  user_id: string;
+  display_name: string;
+  email: string;
+  avatar_url: string | null;
+  households: HouseholdMembership[];
+}

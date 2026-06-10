@@ -1,9 +1,7 @@
-import { View, Text } from "react-native";
+import { Redirect } from "expo-router";
 
+// Firebase handles both sign-in and registration in the same flow.
+// Redirect to the login screen which has Google/Apple sign-in buttons.
 export default function RegisterScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Hausly — Register</Text>
-    </View>
-  );
+  return <Redirect href="/(auth)/login" />;
 }

@@ -523,7 +523,7 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 
 ---
 
-## Phase 9 — Mobile: Project Setup & Auth
+## Phase 9 — Mobile: Project Setup & Auth [completed]
 
 **Goal:** Configured Expo project with Firebase auth, API client, and navigation shell.
 
@@ -562,11 +562,21 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 - API calls include valid auth token
 - Unauthenticated users see login screen
 
+### Completed:
+- Implemented Firebase Auth service with Google/Apple sign-in, sign-out, token retrieval, and auth state listener.
+- Built typed API client with auto-injected Firebase Bearer token and error handling.
+- Created auth flow screens: login (Google/Apple buttons), register (redirect to login), onboarding (create/join household).
+- Implemented `useAuth` hook and `AuthProvider` context for shared auth state management.
+- Set up TanStack Query provider with sensible defaults (stale time, GC, retry).
+- Wired root layout with auth guard: redirects unauthenticated → login, authenticated without household → onboarding.
+- TypeScript strict mode passes with zero errors.
+
 ---
 
 ## Phase 10 — Mobile: Navigation & Shared UI
 
 **Goal:** Tab navigation, design system primitives, and household context.
+Focus on clean, friendly UI/UX.
 
 ### Steps
 

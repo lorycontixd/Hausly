@@ -13,10 +13,10 @@ module.exports = function (api) {
             "@/stores": "./stores",
             "@/services": "./services",
             "@/constants": "./constants",
+            "@hausly/types": "../../packages/types/src/index.ts",
           },
         },
       ],
-      "expo-router/babel",
     ],
   };
 };

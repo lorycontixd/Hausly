@@ -21,11 +21,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.hausly.app"
+      "package": "com.hausly.app",
+      "usesClearTextTraffic": true
     },
     "plugins": [
       "expo-router",
-      "expo-sqlite"
+      "expo-sqlite",
+      "@react-native-google-signin/google-signin",
+      "expo-secure-store"
     ]
   }
 }

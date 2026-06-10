@@ -204,7 +204,7 @@ Example: headcount in the meal planner is always shown and always defaults to th
 
 ### 3.1 Group Creation & Onboarding
 
-1. Creator signs up (OAuth — Google/Apple sign-in)
+1. Creator signs up (Google/Apple sign-in or email+password)
 2. Creator names the household and selects group type (couple / friends / students / family / custom)
 3. App suggests module configuration based on group type; creator can override → pricing tier determined by active modules
 4. Creator receives a shareable invite link + short alphanumeric invite code
@@ -369,7 +369,7 @@ Note on Recipe ownership: recipes belong to a user (`owner_user_id`), not a hous
 
 - **Chosen:** Firebase Auth
 - Free tier covers the app's scale for a long time
-- Native Google/Apple sign-in support
+- Native Google/Apple sign-in support + email/password provider
 - Mature React Native SDK, well-documented JWT verification for FastAPI backends
 - **Why not Azure AD B2C:** XML-based policy configuration, poor DX for consumer apps, over-engineered for this use case
 - **Why not Supabase Auth standalone:** documentation assumes full Supabase stack; less community precedent in non-Supabase backends
