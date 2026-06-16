@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import {
   onAuthStateChanged,
@@ -17,7 +17,30 @@ interface AuthState {
   status: AuthStatus;
   user: FirebaseAuthTypes.User | null;
   profile: VerifyResponse | null;
+  profileLoaded: boolean;
   error: string | null;
+}
+
+const MAX_VERIFY_RETRIES = 3;
+const VERIFY_RETRY_DELAY_MS = 1500;
+
+async function verifyWithRetry(): Promise<VerifyResponse> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= MAX_VERIFY_RETRIES; attempt++) {
+    try {
+      return await verifyToken();
+    } catch (e) {
+      lastError = e;
+      console.warn(
+        `[useAuth] verifyToken attempt ${attempt}/${MAX_VERIFY_RETRIES} failed:`,
+        e instanceof Error ? e.message : e,
+      );
+      if (attempt < MAX_VERIFY_RETRIES) {
+        await new Promise((r) => setTimeout(r, VERIFY_RETRY_DELAY_MS));
+      }
+    }
+  }
+  throw lastError;
 }
 
 export function useAuth() {
@@ -25,33 +48,56 @@ export function useAuth() {
     status: "loading",
     user: null,
     profile: null,
+    profileLoaded: false,
     error: null,
   });
+  const verifyAbortRef = useRef<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(async (firebaseUser) => {
+      verifyAbortRef.current = true;
+      verifyAbortRef.current = false;
+
       if (firebaseUser) {
+        setState((prev) => ({
+          ...prev,
+          status: "authenticated",
+          user: firebaseUser,
+          profileLoaded: false,
+        }));
+
         try {
-          const profile = await verifyToken();
-          setState({
-            status: "authenticated",
-            user: firebaseUser,
-            profile,
-            error: null,
-          });
-        } catch {
-          setState({
-            status: "authenticated",
-            user: firebaseUser,
-            profile: null,
-            error: "Failed to verify with backend",
-          });
+          const profile = await verifyWithRetry();
+          if (!verifyAbortRef.current) {
+            setState({
+              status: "authenticated",
+              user: firebaseUser,
+              profile,
+              profileLoaded: true,
+              error: null,
+            });
+          }
+        } catch (e) {
+          console.error(
+            "[useAuth] verifyToken failed after all retries:",
+            e instanceof Error ? e.message : e,
+          );
+          if (!verifyAbortRef.current) {
+            setState({
+              status: "authenticated",
+              user: firebaseUser,
+              profile: null,
+              profileLoaded: true,
+              error: "Failed to verify with backend",
+            });
+          }
         }
       } else {
         setState({
           status: "unauthenticated",
           user: null,
           profile: null,
+          profileLoaded: false,
           error: null,
         });
       }
@@ -104,6 +150,15 @@ export function useAuth() {
     await firebaseSignOut();
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    try {
+      const profile = await verifyWithRetry();
+      setState((prev) => ({ ...prev, profile, profileLoaded: true }));
+    } catch (e) {
+      console.error("[useAuth] refreshProfile failed:", e instanceof Error ? e.message : e);
+    }
+  }, []);
+
   const hasHousehold = (state.profile?.households?.length ?? 0) > 0;
 
   return {
@@ -115,5 +170,8 @@ export function useAuth() {
     signOut,
     getIdToken,
     hasHousehold,
+    refreshProfile,
   };
 }
+
+export type AuthContextValue = ReturnType<typeof useAuth>;

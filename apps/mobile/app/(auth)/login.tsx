@@ -2,6 +2,7 @@ import { View, Text, TextInput, Pressable, Platform, ActivityIndicator } from "r
 import { StyleSheet } from "react-native";
 import { useState } from "react";
 import { useAuthContext } from "@/providers/AuthProvider";
+import { colors, spacing, borderRadius, typography } from "@/constants/theme";
 
 type Mode = "providers" | "signin" | "signup";
 
@@ -102,7 +103,7 @@ export default function LoginScreen() {
           )}
 
           <Pressable
-            style={styles.emailButton}
+            style={[styles.emailButton, loading && styles.disabled]}
             onPress={isSignUp ? handleEmailSignUp : handleEmailSignIn}
             disabled={loading}
           >
@@ -139,7 +140,7 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.buttons}>
-        <Pressable style={styles.googleButton} onPress={handleGoogle} disabled={loading}>
+        <Pressable style={[styles.googleButton, loading && styles.disabled]} onPress={handleGoogle} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
@@ -148,12 +149,16 @@ export default function LoginScreen() {
         </Pressable>
 
         {Platform.OS === "ios" && (
-          <Pressable style={styles.appleButton} onPress={handleApple} disabled={loading}>
-            <Text style={styles.appleButtonText}>Continue with Apple</Text>
+          <Pressable style={[styles.appleButton, loading && styles.disabled]} onPress={handleApple} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <Text style={styles.appleButtonText}>Continue with Apple</Text>
+            )}
           </Pressable>
         )}
 
-        <Pressable style={styles.emailButton} onPress={() => setMode("signin")} disabled={loading}>
+        <Pressable style={[styles.emailButton, loading && styles.disabled]} onPress={() => setMode("signin")} disabled={loading}>
           <Text style={styles.emailButtonText}>Continue with Email</Text>
         </Pressable>
 
@@ -168,8 +173,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
-    backgroundColor: "#fff",
+    padding: spacing.xxl,
+    backgroundColor: colors.background,
   },
   header: {
     alignItems: "center",
@@ -178,79 +183,81 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: "700",
-    color: "#1a1a1a",
+    color: colors.text,
+    letterSpacing: -0.5,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 8,
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
   },
   buttons: {
     width: "100%",
-    gap: 12,
+    gap: spacing.md,
   },
   form: {
     width: "100%",
-    gap: 12,
+    gap: spacing.md,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#f9f9f9",
+    color: colors.text,
+    backgroundColor: colors.surface,
   },
   googleButton: {
     backgroundColor: "#4285F4",
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
     alignItems: "center",
   },
   googleButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    color: colors.textInverse,
+    ...typography.label,
   },
   appleButton: {
     backgroundColor: "#000",
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
     alignItems: "center",
   },
   appleButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    color: colors.textInverse,
+    ...typography.label,
   },
   emailButton: {
-    backgroundColor: "#6366f1",
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: colors.primary,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.md,
     alignItems: "center",
   },
   emailButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    color: colors.textInverse,
+    ...typography.label,
   },
   switchText: {
-    color: "#6366f1",
-    fontSize: 14,
+    color: colors.primary,
+    ...typography.bodySmall,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   backText: {
-    color: "#666",
-    fontSize: 14,
+    color: colors.textSecondary,
+    ...typography.bodySmall,
     textAlign: "center",
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
   error: {
-    color: "#dc2626",
-    fontSize: 14,
+    color: colors.error,
+    ...typography.bodySmall,
     textAlign: "center",
-    marginTop: 8,
+    marginTop: spacing.sm,
+  },
+  disabled: {
+    opacity: 0.6,
   },
 });

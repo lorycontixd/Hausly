@@ -97,6 +97,29 @@ Files:
 - logics/grocery-session.md — Shopping session lifecycle, client-side state, session completion, expense creation, personal item handling, offline behaviour, and simultaneous shopping.
 - logics/chore-schedule.md — Per-chore recurrence model, rotation logic, assignment generation, overdue blocking, postpone/cancel, member departure, and frontend design.
 
+# planning/global-actions-plan.md
+Purpose: Implementation plan for the global header action buttons (user avatar + three-dots menu).
+Contains:
+- Route structure for `(modals)` group (profile, recipes, preferences, dev-info).
+- GlobalActions component design and wiring.
+- User settings brainstorm (10 candidates for future implementation).
+Use when:
+- Adding user-level features to the header or modal screens.
+- Implementing user preferences or profile editing.
+- Referencing the three-dots menu structure.
+
+# design-system.md
+Purpose: Mobile design system specification ("Soft Pop" theme).
+Contains:
+- Color palette (brand, surfaces, text, semantic, module accents).
+- Typography scale, spacing tokens, border radius, shadow levels.
+- Key UI patterns (module header tints, FABs, status chips, sheets).
+- Icon library choice and haptics policy.
+Use when:
+- Implementing or styling mobile UI components.
+- Adding new module screens (reference module accent colors).
+- Making design decisions for v1 mobile phases (11–16).
+
 ## Agent Guidance
 1. Read docs.md first.
 2. For product scope, constraints, and decision checks, use planning/hausly-project-master-plan.md as the source of truth.

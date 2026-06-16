@@ -32,6 +32,7 @@ export interface User {
 export interface HouseholdMember {
   user_id: string;
   display_name: string;
+  email: string;
   role: MemberRole;
   joined_at: string;
 }

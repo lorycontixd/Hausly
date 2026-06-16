@@ -5,7 +5,7 @@ import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider, useAuthContext } from "@/providers/AuthProvider";
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { status, hasHousehold } = useAuthContext();
+  const { status, hasHousehold, profileLoaded } = useAuthContext();
   const segments = useSegments();
   const router = useRouter();
 
@@ -17,13 +17,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (status === "unauthenticated" && !inAuthGroup) {
       router.replace("/(auth)/login");
     } else if (status === "authenticated" && inAuthGroup) {
+      if (!profileLoaded) return; // Wait until profile fetch resolves
       if (hasHousehold) {
         router.replace("/(tabs)");
       } else {
         router.replace("/(auth)/onboarding");
       }
     }
-  }, [status, hasHousehold, segments, router]);
+  }, [status, hasHousehold, profileLoaded, segments, router]);
 
   if (status === "loading") {
     return (
@@ -41,7 +42,14 @@ export default function RootLayout() {
     <QueryProvider>
       <AuthProvider>
         <AuthGuard>
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="(modals)"
+              options={{ headerShown: false, presentation: "modal" }}
+            />
+          </Stack>
         </AuthGuard>
       </AuthProvider>
     </QueryProvider>

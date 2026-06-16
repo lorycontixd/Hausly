@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added (Phase 11 — Mobile: Household Management)
+- Enhanced onboarding flow (`app/(auth)/onboarding.tsx`): multi-step create (name → type selection) and join (code → preview → confirm) using TanStack Query mutations
+- Household settings screen (`app/(tabs)/settings/index.tsx`): displays household info, invite code with share, module toggles (admin), member list, leave button
+- Member management screen (`app/(tabs)/settings/member.tsx`): admin-only role change and member removal with confirmation dialogs
+- Guided leave flow (`app/(tabs)/settings/leave.tsx`): fetches outstanding items preview, displays unsettled expenses/pending chores, confirmation before leaving
+- Settings navigation layout (`app/(tabs)/settings/_layout.tsx`): nested stack for settings, member, leave screens
+- `useHouseholdMutations` hook (`hooks/useHouseholdMutations.ts`): TanStack Query mutations for create, join, update, settings, role change, remove, leave, regenerate invite, preview invite
+- Added Settings tab to bottom navigation with header delegation to nested stack
+
+### Added (Phase 10 — Mobile: Navigation & Shared UI)
+- Tab navigation layout (`app/(tabs)/_layout.tsx`): bottom tabs for Home, Grocery, Expenses, Meals, Chores with conditional visibility based on `household.settings.enabled_modules`
+- Design system theme (`constants/theme.ts`): colors, spacing, borderRadius, typography tokens
+- UI primitives (`components/ui/`): Button (primary/secondary/destructive, loading state), Card (with elevation), Sheet (bottom sheet modal), Input (with label/error/focus states), Avatar (image + initials fallback), LoadingSpinner, EmptyState
+- Barrel export for UI primitives (`components/ui/index.ts`)
+- Household Zustand store (`stores/householdStore.ts`): current household state (id, name, members, settings, invite code)
+- `useHousehold` hook (`hooks/useHousehold.ts`): TanStack Query fetch + Zustand store sync
+- SignalR client (`services/signalr.ts`): negotiate, connect/disconnect, automatic reconnect, event handlers for all 15 event types (grocery, expense, meal, chore, member) that invalidate relevant TanStack Query caches
+
 ### Added (Phase 9 — Mobile: Project Setup & Auth)
 - Firebase Auth service (`services/firebase.ts`): Google Sign-In, Apple Sign-In, sign-out, auth state listener, token retrieval
 - Typed API client (`services/api.ts`): auto-injected Bearer token, typed request/error handling, CRUD methods

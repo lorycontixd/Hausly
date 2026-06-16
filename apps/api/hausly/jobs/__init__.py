@@ -12,9 +12,10 @@ from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
-from hausly.database import async_session_factory
+from hausly.database import async_session_factory, engine
 from hausly.jobs.chore_assignments import process_chore_assignments
 from hausly.jobs.recurring_expenses import process_recurring_expenses
+from sqlalchemy import text
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,14 @@ async def _run_recurring_expenses() -> None:
         try:
             stats = await process_recurring_expenses(db)
             logger.info("Recurring expenses job completed: %s", stats)
+        except OSError as e:
+            if "Connect call failed" in str(e):
+                logger.error(
+                    "PostgreSQL is not reachable. "
+                    "Start the database with: docker compose up -d"
+                )
+            else:
+                logger.exception("Recurring expenses job failed")
         except Exception:
             logger.exception("Recurring expenses job failed")
 
@@ -37,6 +46,14 @@ async def _run_chore_assignments() -> None:
         try:
             stats = await process_chore_assignments(db)
             logger.info("Chore assignments job completed: %s", stats)
+        except OSError as e:
+            if "Connect call failed" in str(e):
+                logger.error(
+                    "PostgreSQL is not reachable. "
+                    "Start the database with: docker compose up -d"
+                )
+            else:
+                logger.exception("Chore assignments job failed")
         except Exception:
             logger.exception("Chore assignments job failed")
 
@@ -62,6 +79,26 @@ def setup_scheduler() -> None:
 @asynccontextmanager
 async def lifespan_jobs(app):
     """FastAPI lifespan context manager for background jobs."""
+    # Verify database connectivity before starting jobs
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except OSError:
+        logger.error(
+            "\n"
+            "══════════════════════════════════════════════════════════\n"
+            "  PostgreSQL is not reachable!\n"
+            "  Start the database with:  docker compose up -d\n"
+            "  (from apps/api/ directory)\n"
+            "══════════════════════════════════════════════════════════"
+        )
+        yield
+        return
+    except Exception as e:
+        logger.error("Database connection failed: %s", e)
+        yield
+        return
+
     setup_scheduler()
     scheduler.start()
     logger.info("Background job scheduler started")

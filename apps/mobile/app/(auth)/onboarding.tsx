@@ -1,138 +1,232 @@
-import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+} from "react-native";
 import { StyleSheet } from "react-native";
 import { useState } from "react";
 import { useRouter } from "expo-router";
-import { api, VerifyResponse } from "@/services/api";
 import { useAuthContext } from "@/providers/AuthProvider";
+import { useCreateHousehold, useJoinHousehold, usePreviewInvite } from "@/hooks/useHouseholdMutations";
+import { Input, Button, Card } from "@/components/ui";
+import { colors, spacing, borderRadius, typography } from "@/constants/theme";
+import { HouseholdType } from "@hausly/types";
 
-type Step = "choice" | "create" | "join";
+type Step = "choice" | "create-name" | "create-type" | "join" | "join-preview";
 
-interface HouseholdCreateResponse {
-  id: string;
-  name: string;
-  invite_code: string;
-}
+const HOUSEHOLD_TYPES: { value: HouseholdType; label: string; emoji: string }[] = [
+  { value: "couple", label: "Couple", emoji: "💑" },
+  { value: "friends", label: "Friends", emoji: "👫" },
+  { value: "students", label: "Students", emoji: "🎓" },
+  { value: "family", label: "Family", emoji: "👨‍👩‍👧‍👦" },
+  { value: "custom", label: "Other", emoji: "🏠" },
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { profile } = useAuthContext();
+  const { profile, refreshProfile } = useAuthContext();
   const [step, setStep] = useState<Step>("choice");
   const [name, setName] = useState("");
+  const [householdType, setHouseholdType] = useState<HouseholdType>("couple");
   const [inviteCode, setInviteCode] = useState("");
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const createMutation = useCreateHousehold();
+  const joinMutation = useJoinHousehold();
+  const previewMutation = usePreviewInvite();
 
   const handleCreate = async () => {
     if (!name.trim()) return;
-    setLoading(true);
     setError(null);
     try {
-      await api.post<HouseholdCreateResponse>("/households", {
-        name: name.trim(),
-        type: "couple",
-      });
+      await createMutation.mutateAsync({ name: name.trim(), type: householdType });
+      await refreshProfile();
       router.replace("/(tabs)");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create household");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const handlePreviewInvite = async () => {
+    if (!inviteCode.trim()) return;
+    setError(null);
+    try {
+      await previewMutation.mutateAsync(inviteCode.trim());
+      setStep("join-preview");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid invite code");
     }
   };
 
   const handleJoin = async () => {
-    if (!inviteCode.trim()) return;
-    setLoading(true);
     setError(null);
     try {
-      await api.post("/households/join", { invite_code: inviteCode.trim() });
+      await joinMutation.mutateAsync(inviteCode.trim());
+      await refreshProfile();
       router.replace("/(tabs)");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to join household");
-    } finally {
-      setLoading(false);
     }
   };
 
   if (step === "choice") {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Welcome{profile?.display_name ? `, ${profile.display_name}` : ""}!</Text>
+        <Text style={styles.title}>
+          Welcome{profile?.display_name ? `, ${profile.display_name}` : ""}!
+        </Text>
         <Text style={styles.subtitle}>Let&apos;s set up your household</Text>
 
         <View style={styles.buttons}>
-          <Pressable style={styles.primaryButton} onPress={() => setStep("create")}>
-            <Text style={styles.primaryButtonText}>Create a new household</Text>
-          </Pressable>
-
-          <Pressable style={styles.secondaryButton} onPress={() => setStep("join")}>
-            <Text style={styles.secondaryButtonText}>Join with invite code</Text>
-          </Pressable>
+          <Button
+            title="Create a new household"
+            onPress={() => setStep("create-name")}
+            size="large"
+          />
+          <Button
+            title="Join with invite code"
+            onPress={() => setStep("join")}
+            variant="secondary"
+            size="large"
+          />
         </View>
       </View>
     );
   }
 
-  if (step === "create") {
+  if (step === "create-name") {
     return (
       <View style={styles.container}>
         <Pressable onPress={() => setStep("choice")}>
           <Text style={styles.back}>← Back</Text>
         </Pressable>
         <Text style={styles.title}>Name your household</Text>
+        <Text style={styles.subtitle}>Choose a name everyone will recognize</Text>
 
-        <TextInput
-          style={styles.input}
+        <Input
           placeholder="e.g. The Apartment"
           value={name}
           onChangeText={setName}
           autoFocus
         />
 
-        <Pressable
-          style={[styles.primaryButton, !name.trim() && styles.disabled]}
-          onPress={handleCreate}
-          disabled={loading || !name.trim()}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.primaryButtonText}>Create</Text>
-          )}
+        <Button
+          title="Next"
+          onPress={() => setStep("create-type")}
+          disabled={!name.trim()}
+          size="large"
+          style={styles.actionButton}
+        />
+      </View>
+    );
+  }
+
+  if (step === "create-type") {
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Pressable onPress={() => setStep("create-name")}>
+          <Text style={styles.back}>← Back</Text>
         </Pressable>
+        <Text style={styles.title}>What kind of household?</Text>
+        <Text style={styles.subtitle}>
+          This helps us set up smart defaults for your modules
+        </Text>
+
+        <View style={styles.typeGrid}>
+          {HOUSEHOLD_TYPES.map((ht) => (
+            <Pressable
+              key={ht.value}
+              style={[
+                styles.typeCard,
+                householdType === ht.value && styles.typeCardSelected,
+              ]}
+              onPress={() => setHouseholdType(ht.value)}
+            >
+              <Text style={styles.typeEmoji}>{ht.emoji}</Text>
+              <Text
+                style={[
+                  styles.typeLabel,
+                  householdType === ht.value && styles.typeLabelSelected,
+                ]}
+              >
+                {ht.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Button
+          title="Create Household"
+          onPress={handleCreate}
+          loading={createMutation.isPending}
+          disabled={!name.trim()}
+          size="large"
+          style={styles.actionButton}
+        />
+
+        {error && <Text style={styles.error}>{error}</Text>}
+      </ScrollView>
+    );
+  }
+
+  if (step === "join") {
+    return (
+      <View style={styles.container}>
+        <Pressable onPress={() => setStep("choice")}>
+          <Text style={styles.back}>← Back</Text>
+        </Pressable>
+        <Text style={styles.title}>Join a household</Text>
+        <Text style={styles.subtitle}>
+          Enter the invite code shared by your household admin
+        </Text>
+
+        <Input
+          placeholder="Enter invite code"
+          value={inviteCode}
+          onChangeText={setInviteCode}
+          autoCapitalize="characters"
+          autoFocus
+        />
+
+        <Button
+          title="Preview"
+          onPress={handlePreviewInvite}
+          loading={previewMutation.isPending}
+          disabled={!inviteCode.trim()}
+          size="large"
+          style={styles.actionButton}
+        />
 
         {error && <Text style={styles.error}>{error}</Text>}
       </View>
     );
   }
 
-  // step === "join"
+  // step === "join-preview"
+  const preview = previewMutation.data;
   return (
     <View style={styles.container}>
-      <Pressable onPress={() => setStep("choice")}>
+      <Pressable onPress={() => setStep("join")}>
         <Text style={styles.back}>← Back</Text>
       </Pressable>
-      <Text style={styles.title}>Join a household</Text>
+      <Text style={styles.title}>Join this household?</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Enter invite code"
-        value={inviteCode}
-        onChangeText={setInviteCode}
-        autoCapitalize="characters"
-        autoFocus
-      />
+      <Card elevated style={styles.previewCard}>
+        <Text style={styles.previewName}>{preview?.household_name}</Text>
+        <Text style={styles.previewMeta}>
+          {preview?.type} · {preview?.member_count}{" "}
+          {preview?.member_count === 1 ? "member" : "members"}
+        </Text>
+      </Card>
 
-      <Pressable
-        style={[styles.primaryButton, !inviteCode.trim() && styles.disabled]}
+      <Button
+        title="Join Household"
         onPress={handleJoin}
-        disabled={loading || !inviteCode.trim()}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.primaryButtonText}>Join</Text>
-        )}
-      </Pressable>
+        loading={joinMutation.isPending}
+        size="large"
+        style={styles.actionButton}
+      />
 
       {error && <Text style={styles.error}>{error}</Text>}
     </View>
@@ -143,67 +237,81 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#fff",
+    padding: spacing.xxl,
+    backgroundColor: colors.background,
   },
   title: {
+    ...typography.heading,
     fontSize: 28,
-    fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 48,
+    ...typography.body,
+    color: colors.textSecondary,
+    marginBottom: spacing.xxxl,
   },
   buttons: {
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: "#4F46E5",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  secondaryButton: {
-    borderWidth: 2,
-    borderColor: "#4F46E5",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: "#4F46E5",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    marginBottom: 16,
+    gap: spacing.md,
   },
   back: {
-    fontSize: 16,
-    color: "#4F46E5",
-    marginBottom: 24,
+    ...typography.body,
+    color: colors.primary,
+    marginBottom: spacing.xxl,
   },
-  disabled: {
-    opacity: 0.5,
+  actionButton: {
+    marginTop: spacing.lg,
+  },
+  typeGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+    marginBottom: spacing.xxl,
+  },
+  typeCard: {
+    width: "47%",
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  typeCardSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
+  typeEmoji: {
+    fontSize: 28,
+  },
+  typeLabel: {
+    ...typography.label,
+    color: colors.textSecondary,
+  },
+  typeLabelSelected: {
+    color: colors.primary,
+  },
+  previewCard: {
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+    alignItems: "center",
+  },
+  previewName: {
+    ...typography.subheading,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  previewMeta: {
+    ...typography.bodySmall,
+    color: colors.textSecondary,
+    textTransform: "capitalize",
   },
   error: {
-    color: "#dc2626",
-    fontSize: 14,
+    color: colors.error,
+    ...typography.bodySmall,
     textAlign: "center",
-    marginTop: 12,
+    marginTop: spacing.md,
   },
 });

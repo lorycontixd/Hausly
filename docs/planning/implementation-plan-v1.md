@@ -573,7 +573,7 @@ def generate_assignments(chore, assignees, existing_assignments, horizon_days=14
 
 ---
 
-## Phase 10 — Mobile: Navigation & Shared UI
+## Phase 10 — Mobile: Navigation & Shared UI [completed]
 
 **Goal:** Tab navigation, design system primitives, and household context.
 Focus on clean, friendly UI/UX.
@@ -615,9 +615,18 @@ Focus on clean, friendly UI/UX.
 - Household data loaded and available to all screens
 - SignalR connection established and events received
 
+### Completed:
+- Created tab layout (`app/(tabs)/_layout.tsx`) with bottom tabs (Home, Grocery, Expenses, Meals, Chores), conditional visibility driven by `household.settings.enabled_modules` from Zustand store.
+- Built design tokens file (`constants/theme.ts`) with colors, spacing, borderRadius, shadows, and typography primitives. Applied "Soft Pop" theme (see `docs/design-system.md`): indigo-violet primary, per-module accent colors, semantic shadow system, refined border radii.
+- Implemented 7 UI primitives in `components/ui/`: Button (3 variants + size + loading), Card (with elevation), Sheet (bottom modal), Input (label + error + focus), Avatar (image + initials fallback), LoadingSpinner, EmptyState. All co-located with `.styles.ts`.
+- Implemented household Zustand store (`stores/householdStore.ts`): id, name, inviteCode, members, settings with set/clear actions.
+- Created `useHousehold` hook (`hooks/useHousehold.ts`): fetches via TanStack Query, syncs result into Zustand store.
+- Implemented full SignalR client (`services/signalr.ts`): negotiate, connect/disconnect, automatic reconnect, 15 event handlers that invalidate relevant query caches (grocery, expense, meal, chore, member events).
+- Zero TypeScript errors across all new files.
+
 ---
 
-## Phase 11 — Mobile: Household Management
+## Phase 11 — Mobile: Household Management [completed]
 
 **Goal:** Create/join household flows, member list, settings, leave flow.
 
@@ -648,6 +657,55 @@ Focus on clean, friendly UI/UX.
 - User can join via invite code
 - Admin can manage members and settings
 - Leave flow presents unsettled data before confirming
+
+### Completed:
+- Enhanced onboarding with multi-step creation (name → household type picker) and join (code → preview → confirm) using TanStack Query mutations.
+- Built household settings screen: household info, invite code sharing, module toggles (admin-only), member list with role badges, leave button.
+- Created admin member management screen with role change and removal (with confirmation alerts).
+- Implemented guided leave flow: fetches outstanding items preview, displays unsettled expenses/pending chores, final confirmation alert.
+- Created `useHouseholdMutations` hook with all household mutations (create, join, update, settings, role, remove, leave, regenerate code, preview).
+- Added Settings tab to navigation with nested stack layout.
+- All production TypeScript passes type checking.
+
+---
+
+## Phase 11.5 — Mobile: Global Actions (User-Level Header Buttons) [completed]
+
+**Goal:** Add persistent user-level header buttons (avatar + three-dots menu) across all tab screens, with modal screens for profile, developer info, recipes (v2 placeholder), and preferences (placeholder).
+
+**Plan:** `docs/planning/global-actions-plan.md`
+
+### Steps
+
+11.5.1. **GlobalActions header component** (`components/GlobalActions.tsx`):
+- Two `Pressable` buttons in `headerRight`: user avatar (28px, initials) + three-dots icon (Ionicons)
+- Avatar navigates to profile modal; three-dots opens bottom Sheet with 4 menu items
+
+11.5.2. **Modal route group** (`app/(modals)/`):
+- Stack layout with `presentation: "modal"` — automatic back arrow on all screens
+- Profile: avatar (80px), display name, email, current household (read-only)
+- Dev Info: app version (expo-constants), API version, platform, environment
+- My Recipes: EmptyState placeholder (v2 scope)
+- Preferences: EmptyState placeholder (no UserSettings API yet)
+
+11.5.3. **Wiring:**
+- `headerRight: () => <GlobalActions />` in tabs screenOptions and settings nested Stack
+- `(modals)` registered in root Stack
+- i18n strings added to `i18n/en.json`
+
+### Success Criteria
+- Avatar + three-dots visible on all tab headers (right-aligned)
+- Sheet opens with Developer Info, My Recipes, Preferences, Log Out
+- Log Out shows confirmation alert before calling `signOut()`
+- All 4 modal screens render correctly with back navigation
+- Zero TypeScript errors
+
+### Completed:
+- Created `GlobalActions` component with avatar button + three-dots Sheet menu (4 items).
+- Created `(modals)` route group with 4 modal screens: profile, dev-info, recipes, preferences.
+- Wired `headerRight` into tabs layout and settings nested Stack.
+- Registered `(modals)` in root layout. Added i18n strings.
+- Zero new dependencies. Zero TypeScript errors.
 
 ---
 

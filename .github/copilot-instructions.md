@@ -117,6 +117,12 @@ Use imperative mood with a module prefix:
 
 Examples: `api: add grocery session complete endpoint`, `mobile: implement expense list screen`
 
+## SQL Scripts
+When SQL commands are requested to perform complex or multi-step database operations (data resets, manual state changes, test setup, tenant cleanup), save the command as a `.sql` file in `apps/api/scripts/sql/`.
+- Naming: `<verb>_<entity>_<context>.sql` (e.g., `remove_user_from_household.sql`).
+- Include a header comment with: purpose, usage, constraints respected, and bypass warnings.
+- Dev/test use only — never run against production without explicit approval.
+
 ## Testing Conventions
 ### Backend (apps/api/)
 - Framework: pytest + pytest-asyncio

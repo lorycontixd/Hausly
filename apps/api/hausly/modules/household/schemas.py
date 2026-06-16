@@ -26,6 +26,7 @@ class HouseholdSettingsUpdate(BaseModel):
 class MemberResponse(BaseModel):
     user_id: uuid.UUID
     display_name: str
+    email: str
     role: MemberRole
     joined_at: datetime
 

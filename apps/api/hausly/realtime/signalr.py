@@ -176,6 +176,9 @@ class SignalRService:
     async def member_left(self, household_id: uuid.UUID, user_id: str) -> None:
         await self.broadcast_to_household(household_id, "member:left", {"user_id": user_id})
 
+    async def household_settings_updated(self, household_id: uuid.UUID, settings: dict[str, Any]) -> None:
+        await self.broadcast_to_household(household_id, "household_settings_updated", settings)
+
 
 # Singleton instance
 signalr_service = SignalRService()

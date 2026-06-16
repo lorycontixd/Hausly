@@ -68,6 +68,7 @@ async def _build_household_response(
             MemberResponse(
                 user_id=m.user_id,
                 display_name=u.display_name,
+                email=u.email,
                 role=m.role,
                 joined_at=m.joined_at,
             )
@@ -126,6 +127,14 @@ async def update_settings(
         settings = await service.update_settings(db, household_id, data)
     except HouseholdError as e:
         _handle_service_error(e)
+
+    from hausly.realtime.signalr import signalr_service
+    await signalr_service.household_settings_updated(household_id, {
+        "enabled_modules": settings.enabled_modules,
+        "default_currency": settings.default_currency,
+        "notification_level": settings.notification_level,
+    })
+
     return HouseholdSettingsResponse(
         default_currency=settings.default_currency,
         enabled_modules=settings.enabled_modules,

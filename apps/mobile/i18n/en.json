@@ -20,6 +20,20 @@
       "join": "Join Household",
       "leave": "Leave Group",
       "inviteCode": "Invite Code"
+    },
+    "global": {
+      "profile": "Profile",
+      "recipes": "My Recipes",
+      "preferences": "Preferences",
+      "devInfo": "Developer Info",
+      "logOut": "Log Out",
+      "logOutConfirm": "Are you sure you want to log out?",
+      "recipesComingSoon": "Recipe book coming soon — stay tuned!",
+      "preferencesComingSoon": "User preferences coming soon.",
+      "version": "Version",
+      "apiVersion": "API Version",
+      "platform": "Platform",
+      "environment": "Environment"
     }
   }
 }

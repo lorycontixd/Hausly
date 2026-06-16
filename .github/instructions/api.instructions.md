@@ -75,6 +75,13 @@ async def create_item(
     return await service.create_item(db, membership.household_id, user.id, data)
 ```
 
+## SQL Scripts (`scripts/sql/`)
+
+- When SQL commands are requested to perform complex or multi-step database operations (e.g., data resets, manual migrations, tenant cleanup, test setup), save the command as a `.sql` file in `apps/api/scripts/sql/`.
+- File naming: `<verb>_<entity>_<context>.sql` (e.g., `remove_user_from_household.sql`).
+- Each script must include a header comment explaining: purpose, usage instructions, constraints respected, and a warning if it bypasses service-layer logic.
+- Scripts are for dev/test use only. Never run raw SQL against production without a logged decision.
+
 ## Commit Messages
 
 Prefix: `api:` (e.g., `api: add grocery session complete endpoint`)
