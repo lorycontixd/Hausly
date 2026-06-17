@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added (Phase 14 — Mobile: Meal Planner Module)
+- Meal planner screen (`app/(tabs)/meal.tsx`): weekly diary view with 7 days × 2 slots (lunch/dinner), week navigation (prev/next), slot claiming
+- TanStack Query hooks (`hooks/useMeals.ts`): `useMealEntries` (date-range fetch), `useCreateMeal` (with 409 conflict handling), `useUpdateMeal`, `useDeleteMeal` — all with cache invalidation
+- MealEntrySheet: create/edit bottom sheet with text input, headcount stepper (defaults to member count), owner/admin edit guard, delete with confirmation
+- MealWeekView component: day rows with formatted labels, lunch/dinner slot cards, week navigation header
+- MealSlotCard component: displays meal text + owner + headcount, or "Tap to claim" for empty slots
+- Meal Zustand store (`stores/mealStore.ts`): week offset navigation, selected slot tracking, sheet visibility state
+- SignalR events already wired (`meal_entry_created`, `meal_entry_updated`, `meal_entry_removed`) to invalidate meal queries
+- 10 unit tests covering week computation, slot lookup, edit permissions, and headcount defaults
+
 ### Added (Phase 13 — Mobile: Expense Module)
 - Expense list screen (`app/(tabs)/expense.tsx`): tabbed view (Expenses/Balances/Settlements), status filter chips, FAB for new expense
 - TanStack Query hooks (`hooks/useExpenses.ts`): `useExpenses`, `useExpense`, `useBalances`, `useSettlements`, `useCreateExpense`, `useUpdateExpense`, `useConfirmExpense`, `useDeleteExpense`, `useSettleSplit` — all with cache invalidation

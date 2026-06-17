@@ -41,7 +41,7 @@ async def _build_response(
     else:
         display_name = await _get_display_name(db, entry.owner_user_id)
     data = MealEntryResponse.model_validate(entry)
-    data.owner_display_name = display_name
+    data.owner_display_name = display_name or "Unknown"
     return data
 
 
@@ -66,7 +66,7 @@ async def get_entries(
     results = []
     for e in entries:
         resp = MealEntryResponse.model_validate(e)
-        resp.owner_display_name = name_map.get(e.owner_user_id)
+        resp.owner_display_name = name_map.get(e.owner_user_id) or "Unknown"
         results.append(resp)
     return results
 

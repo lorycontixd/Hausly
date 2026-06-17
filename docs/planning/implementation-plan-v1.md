@@ -830,7 +830,7 @@ Focus on clean, friendly UI/UX.
 
 ---
 
-## Phase 14 — Mobile: Meal Planner Module
+## Phase 14 — Mobile: Meal Planner Module [completed]
 
 **Goal:** Weekly diary view with slot claiming and headcount.
 
@@ -861,6 +861,14 @@ Focus on clean, friendly UI/UX.
 - First-come-first-served: 409 shown as friendly message
 - Only owner/admin can edit/delete
 - Headcount defaults correctly
+
+### Completed:
+- Implemented weekly diary view with day-by-day layout (Mon–Sun) and lunch/dinner slot cards.
+- MealEntrySheet handles create (with 409 conflict alert) and edit (owner/admin guarded).
+- Headcount defaults to household member count via Zustand store.
+- TanStack Query hooks fetch by date range and invalidate on mutations.
+- SignalR event handlers were already wired from Phase 7.
+- 10 unit tests pass covering week computation, slot lookup, and permission logic.
 
 ---
 
