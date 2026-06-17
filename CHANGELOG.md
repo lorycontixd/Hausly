@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added (Phase 12 — Mobile: Grocery Module)
+- Grocery list screen (`app/(tabs)/grocery.tsx`): FlatList display, inline add, long-press delete, personal item markers, personal filter toggle
+- TanStack Query hooks (`hooks/useGrocery.ts`): `useGroceryLists`, `useGroceryItems`, `useAddGroceryItem`, `useUpdateGroceryItem`, `useDeleteGroceryItem`, `useCompleteSession`, `useArchiveGroceryList` — all with optimistic updates
+- Shopping session mode: start/cancel session, checkable items, "Done" → summary screen with shared/personal split, receipt total input, create expense toggle, confirm → `POST /grocery/session/complete`
+- Grocery Zustand store (`stores/groceryStore.ts`): session state (active, checked items, start/end/toggle) + offline pending operations queue
+- Session summary screen (`components/grocery/SessionSummary.tsx`): shared vs personal item breakdown, expense creation toggle, receipt total validation
+- Grocery UI components: `GroceryHeader`, `GroceryItemRow`, `AddItemInput` with co-located styles
+- Offline support: session complete queued locally when offline, syncs on reconnect
+- Clear list action with confirmation dialog → archive endpoint
+- 15 unit tests (store session management + extracted grocery logic)
+
 ### Added (Phase 11 — Mobile: Household Management)
 - Enhanced onboarding flow (`app/(auth)/onboarding.tsx`): multi-step create (name → type selection) and join (code → preview → confirm) using TanStack Query mutations
 - Household settings screen (`app/(tabs)/settings/index.tsx`): displays household info, invite code with share, module toggles (admin), member list, leave button

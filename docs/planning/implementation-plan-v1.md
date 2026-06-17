@@ -709,7 +709,7 @@ Focus on clean, friendly UI/UX.
 
 ---
 
-## Phase 12 — Mobile: Grocery Module
+## Phase 12 — Mobile: Grocery Module [completed]
 
 **Goal:** Shared grocery list with real-time sync, personal items, and shopping session.
 
@@ -747,6 +747,16 @@ Focus on clean, friendly UI/UX.
 12.5. **Clear list action**:
 - "Clear List" with confirmation dialog
 - Calls archive endpoint
+
+### Completed:
+- Implemented grocery list screen with FlatList, item rendering, and personal item markers.
+- Built TanStack Query hooks with optimistic updates for add/update/delete/session-complete/archive.
+- Implemented shopping session mode with Zustand store (start, toggle, done, cancel).
+- Built session summary screen with shared/personal split, receipt total input, and expense toggle.
+- Added offline support via pending operations queue in Zustand store.
+- Clear list action with confirmation dialog calls archive endpoint.
+- Components: GroceryHeader, GroceryItemRow, AddItemInput, SessionSummary with co-located styles.
+- 15 unit tests passing (store + extracted logic).
 
 ### Success Criteria
 - Items sync in real-time between devices
