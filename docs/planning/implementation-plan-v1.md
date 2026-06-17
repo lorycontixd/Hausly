@@ -766,7 +766,7 @@ Focus on clean, friendly UI/UX.
 
 ---
 
-## Phase 13 — Mobile: Expense Module
+## Phase 13 — Mobile: Expense Module [completed]
 
 **Goal:** Expense tracking with splits, balances, settlement, and draft confirmation.
 
@@ -815,6 +815,18 @@ Focus on clean, friendly UI/UX.
 - Draft→confirm flow works
 - Grocery-generated drafts appear for confirmation
 - Settlement suggestions display correctly
+
+### Completed:
+- Implemented full expense list screen with tab navigation (Expenses, Balances, Settlements) and status filter chips (All, Draft, Confirmed).
+- Built CreateExpenseSheet with amount input, title, category, paid-by selector, participant checkboxes, and three split modes (Equal with remainder handling, Custom with sum validation, Percentage with 100% validation). Save as draft or confirm.
+- Created ExpenseDetail bottom sheet showing amount, status badge, source tag, payer, category, date, per-split breakdown with settled/unsettled status, and Confirm/Delete actions for drafts.
+- Built BalanceSummary component showing net amounts per member pair with color-coded owed/owed-to direction.
+- Built SettlementList component with suggested transactions and per-suggestion "Settle" button that settles relevant splits.
+- Implemented `hooks/useExpenses.ts` with 7 TanStack Query hooks: useExpenses (with filters), useExpense, useBalances, useSettlements, useCreateExpense, useConfirmExpense, useDeleteExpense, useUpdateExpense, useSettleSplit — all with proper cache invalidation.
+- Implemented `stores/expenseStore.ts` Zustand store for local UI state: form state, selected expense, status filter, active tab.
+- Created 6 expense components with co-located styles in `components/expense/`.
+- 19 new tests (7 store + 12 split logic) all passing. Full mobile suite: 94/95 pass (1 pre-existing SignalR failure unrelated).
+- Zero TypeScript errors in all new files.
 
 ---
 

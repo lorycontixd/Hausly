@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added (Phase 13 — Mobile: Expense Module)
+- Expense list screen (`app/(tabs)/expense.tsx`): tabbed view (Expenses/Balances/Settlements), status filter chips, FAB for new expense
+- TanStack Query hooks (`hooks/useExpenses.ts`): `useExpenses`, `useExpense`, `useBalances`, `useSettlements`, `useCreateExpense`, `useUpdateExpense`, `useConfirmExpense`, `useDeleteExpense`, `useSettleSplit` — all with cache invalidation
+- CreateExpenseSheet: amount input, title, category, paid-by selector, participant checkboxes, 3 split modes (equal with remainder, custom with sum validation, percentage with 100% validation), save as draft or confirm
+- ExpenseDetail bottom sheet: amount, status badge, source tag, payer info, split breakdown (settled/unsettled), Confirm/Delete actions for drafts
+- BalanceSummary component: net amounts per member pair, color-coded direction (owed/owed-to), settled state
+- SettlementList component: suggested transactions with per-suggestion "Settle" button
+- Expense Zustand store (`stores/expenseStore.ts`): form state (title, amount, currency, category, paidBy, splitMode, splits, participants), selected expense, status filter, active tab
+- 6 expense components with co-located styles in `components/expense/`
+- 19 new tests (7 store + 12 split calculation logic)
+
 ### Added (Phase 12 — Mobile: Grocery Module)
 - Grocery list screen (`app/(tabs)/grocery.tsx`): FlatList display, inline add, long-press delete, personal item markers, personal filter toggle
 - TanStack Query hooks (`hooks/useGrocery.ts`): `useGroceryLists`, `useGroceryItems`, `useAddGroceryItem`, `useUpdateGroceryItem`, `useDeleteGroceryItem`, `useCompleteSession`, `useArchiveGroceryList` — all with optimistic updates
