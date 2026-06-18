@@ -71,7 +71,7 @@ The API secrets in the repo mean anyone with read access to the codebase has ful
 1. Create Key Vault via Bicep:
    ```bicep
    resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
-     name: 'kv-hausly-${environment}'
+     name: 'kv-hauslyapp-${environment}'
      location: location
      properties: {
        sku: { family: 'A', name: 'standard' }

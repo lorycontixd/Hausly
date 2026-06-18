@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
+import { logChoreCompleted } from "@/services/analytics";
 import { Chore, ChoreAssignment } from "@hausly/types";
 
 // --- Interfaces ---
@@ -126,6 +127,7 @@ export function useCompleteAssignment(householdId: string | null) {
         `/households/${householdId}/chores/assignments/${assignmentId}/complete`
       ),
     onSuccess: () => {
+      logChoreCompleted(true, 0);
       queryClient.invalidateQueries({
         queryKey: ["chores", "assignments", householdId],
       });

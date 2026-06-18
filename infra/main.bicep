@@ -40,7 +40,7 @@ param postgresAdminPassword string
 
 // ─── NAMING CONVENTION ──────────────────────────────────────────────────────
 // All resource names follow: {type-prefix}-hausly-{environment}
-// Examples: kv-hausly-dev, signalr-hausly-prod, ca-hausly-dev
+// Examples: kv-hauslyapp-dev, signalr-hausly-prod, ca-hausly-dev
 // This prevents name collisions and makes resources easy to identify.
 
 // ─── MODULE: Log Analytics Workspace ────────────────────────────────────────

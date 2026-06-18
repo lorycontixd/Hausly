@@ -1,4 +1,5 @@
 import { getIdToken } from "@/services/firebase";
+import { trackApiError } from "@/services/telemetry";
 import { VerifyResponse } from "@hausly/types";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -50,6 +51,12 @@ async function request<T>(
     } catch {
       // Response body isn't JSON
     }
+    trackApiError(
+      options.method ?? "GET",
+      path,
+      response.status,
+      errorBody.detail,
+    );
     throw new ApiClientError(
       errorBody.detail,
       response.status,

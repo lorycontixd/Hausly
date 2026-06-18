@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
+import { logHouseholdCreated, logHouseholdJoined } from "@/services/analytics";
 import {
   Household,
   HouseholdSettings,
@@ -51,7 +52,8 @@ export function useCreateHousehold() {
   return useMutation({
     mutationFn: (data: CreateHouseholdData) =>
       api.post<Household>("/households", data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      logHouseholdCreated(variables.type, 1);
       queryClient.invalidateQueries({ queryKey: ["household"] });
     },
   });
@@ -63,7 +65,8 @@ export function useJoinHousehold() {
   return useMutation({
     mutationFn: (inviteCode: string) =>
       api.post<Household>("/households/join", { invite_code: inviteCode }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      logHouseholdJoined("invite_code", data.type);
       queryClient.invalidateQueries({ queryKey: ["household"] });
     },
   });

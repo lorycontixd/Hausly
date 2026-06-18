@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import { setCrashUser, logBreadcrumb, logNonFatal } from '@/services/analytics';
+
 import {
   onAuthStateChanged,
   signInWithGoogle,
@@ -9,6 +11,13 @@ import {
   signOut as firebaseSignOut,
   getIdToken,
 } from "@/services/firebase";
+import {
+  clearUserContext,
+  setUserContext,
+  trackEvent,
+  trackException,
+  trackWarning,
+} from "@/services/telemetry";
 import { verifyToken, VerifyResponse } from "@/services/api";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -35,6 +44,10 @@ async function verifyWithRetry(): Promise<VerifyResponse> {
         `[useAuth] verifyToken attempt ${attempt}/${MAX_VERIFY_RETRIES} failed:`,
         e instanceof Error ? e.message : e,
       );
+      trackWarning(`verifyToken attempt ${attempt} failed`, {
+        attempt: String(attempt),
+        error: e instanceof Error ? e.message : String(e),
+      });
       if (attempt < MAX_VERIFY_RETRIES) {
         await new Promise((r) => setTimeout(r, VERIFY_RETRY_DELAY_MS));
       }
@@ -69,6 +82,8 @@ export function useAuth() {
         try {
           const profile = await verifyWithRetry();
           if (!verifyAbortRef.current) {
+            setUserContext(firebaseUser.uid, profile.households?.[0]?.id);
+            setCrashUser(firebaseUser.uid, profile.households?.[0]?.id);
             setState({
               status: "authenticated",
               user: firebaseUser,
@@ -82,6 +97,14 @@ export function useAuth() {
             "[useAuth] verifyToken failed after all retries:",
             e instanceof Error ? e.message : e,
           );
+          trackException(
+            e instanceof Error ? e : new Error(String(e)),
+            { context: "verifyToken_exhausted" },
+          );
+          logNonFatal(
+            e instanceof Error ? e : new Error(String(e)),
+            "verifyToken exhausted all retries",
+          );
           if (!verifyAbortRef.current) {
             setState({
               status: "authenticated",
@@ -93,6 +116,7 @@ export function useAuth() {
           }
         }
       } else {
+        clearUserContext();
         setState({
           status: "unauthenticated",
           user: null,
@@ -110,8 +134,12 @@ export function useAuth() {
     setState((prev) => ({ ...prev, error: null }));
     try {
       await signInWithGoogle();
+      trackEvent("sign_in", { method: "google" });
+      logBreadcrumb("sign_in:google");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Google Sign-In failed";
+      trackException(e instanceof Error ? e : new Error(message), { method: "google" });
+      logNonFatal(e instanceof Error ? e : new Error(message), "Google Sign-In failed");
       setState((prev) => ({ ...prev, error: message }));
     }
   }, []);
@@ -120,8 +148,12 @@ export function useAuth() {
     setState((prev) => ({ ...prev, error: null }));
     try {
       await signInWithApple();
+      trackEvent("sign_in", { method: "apple" });
+      logBreadcrumb("sign_in:apple");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Apple Sign-In failed";
+      trackException(e instanceof Error ? e : new Error(message), { method: "apple" });
+      logNonFatal(e instanceof Error ? e : new Error(message), "Apple Sign-In failed");
       setState((prev) => ({ ...prev, error: message }));
     }
   }, []);
@@ -130,8 +162,12 @@ export function useAuth() {
     setState((prev) => ({ ...prev, error: null }));
     try {
       await signInWithEmail(email, password);
+      trackEvent("sign_in", { method: "email" });
+      logBreadcrumb("sign_in:email");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Email Sign-In failed";
+      trackException(e instanceof Error ? e : new Error(message), { method: "email" });
+      logNonFatal(e instanceof Error ? e : new Error(message), "Email Sign-In failed");
       setState((prev) => ({ ...prev, error: message }));
     }
   }, []);
@@ -140,13 +176,19 @@ export function useAuth() {
     setState((prev) => ({ ...prev, error: null }));
     try {
       await createAccountWithEmail(email, password);
+      trackEvent("account_created", { method: "email" });
+      logBreadcrumb("account_created:email");
     } catch (e) {
       const message = e instanceof Error ? e.message : "Account creation failed";
+      trackException(e instanceof Error ? e : new Error(message), { context: "create_account" });
+      logNonFatal(e instanceof Error ? e : new Error(message), "Account creation failed");
       setState((prev) => ({ ...prev, error: message }));
     }
   }, []);
 
   const signOut = useCallback(async () => {
+    clearUserContext();
+    trackEvent("sign_out");
     await firebaseSignOut();
   }, []);
 

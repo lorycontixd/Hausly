@@ -6,6 +6,7 @@ import {
 } from "@microsoft/signalr";
 import { api } from "@/services/api";
 import { queryClient } from "@/providers/QueryProvider";
+import { trackEvent, trackException } from "@/services/telemetry";
 
 interface NegotiateResponse {
   url: string;
@@ -29,9 +30,22 @@ export async function connectSignalR(householdId: string): Promise<void> {
     .configureLogging(LogLevel.Warning)
     .build();
 
+  connection.onreconnecting((error) => {
+    trackException(error ?? new Error("SignalR reconnecting"), {
+      context: "signalr_reconnecting",
+    });
+  });
+
+  connection.onclose((error) => {
+    if (error) {
+      trackException(error, { context: "signalr_closed_with_error" });
+    }
+  });
+
   registerEventHandlers(householdId);
 
   await connection.start();
+  trackEvent("signalr_connected", { household_id: householdId });
 }
 
 export async function disconnectSignalR(): Promise<void> {

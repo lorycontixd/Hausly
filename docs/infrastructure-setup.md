@@ -107,7 +107,7 @@ Firebase Auth is NOT deployed via Bicep — it's a Google service configured thr
 3. Add an Android app (package: `com.hausly.app`)
 4. Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
 5. Place them in `apps/mobile/android/app/` and `apps/mobile/ios/` respectively
-    
+
 ### 1.5 Firebase Projects (Dev vs Prod)
 Create **two separate Firebase projects**:
 - `hausly-dev` — for development
@@ -181,7 +181,7 @@ After deployment, manually store the secrets that can't be auto-generated:
 
 ```powershell
 # Dev environment
-az keyvault secret set --vault-name kv-hausly-dev --name "FIREBASE-SA-JSON" --file apps/api/firebase-sa.json
+az keyvault secret set --vault-name kv-hauslyapp-dev --name "FIREBASE-SA-JSON" --file apps/api/firebase-sa.json
 
 # The DATABASE-URL and SIGNALR-CONNECTION-STRING are auto-generated during deployment
 # and stored in Key Vault by the Bicep template.
@@ -249,8 +249,8 @@ az cognitiveservices account keys list --name oai-hausly-dev --resource-group ha
 
 Store these in Key Vault:
 ```powershell
-az keyvault secret set --vault-name kv-hausly-dev --name "AZURE-OPENAI-ENDPOINT" --value "<endpoint>"
-az keyvault secret set --vault-name kv-hausly-dev --name "AZURE-OPENAI-KEY" --value "<key>"
+az keyvault secret set --vault-name kv-hauslyapp-dev --name "AZURE-OPENAI-ENDPOINT" --value "<endpoint>"
+az keyvault secret set --vault-name kv-hauslyapp-dev --name "AZURE-OPENAI-KEY" --value "<key>"
 ```
 
 ---

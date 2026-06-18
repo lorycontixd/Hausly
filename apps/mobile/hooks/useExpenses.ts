@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
+import { logExpenseCreated, logExpenseSettled } from "@/services/analytics";
 import {
   Expense,
   ExpenseSplit,
   Balance,
   SettlementSuggestion,
 } from "@hausly/types";
+
+// --- Helpers ---
+
+function getAmountRange(amount: number): string {
+  if (amount < 10) return "0-10";
+  if (amount < 50) return "10-50";
+  if (amount < 100) return "50-100";
+  if (amount < 500) return "100-500";
+  return "500+";
+}
 
 // --- Interfaces ---
 
@@ -113,7 +124,12 @@ export function useCreateExpense(householdId: string | null) {
   return useMutation({
     mutationFn: (data: ExpenseCreate) =>
       api.post<Expense>(`/households/${householdId}/expenses`, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      logExpenseCreated(
+        variables.source ?? "manual",
+        variables.splits.length > 1 ? "split" : "full",
+        getAmountRange(variables.amount),
+      );
       queryClient.invalidateQueries({
         queryKey: ["expenses", householdId],
       });
@@ -191,6 +207,7 @@ export function useSettleSplit(householdId: string | null) {
         `/households/${householdId}/expenses/splits/${splitId}/settle`
       ),
     onSuccess: () => {
+      logExpenseSettled(1, "single");
       queryClient.invalidateQueries({
         queryKey: ["expenses", householdId],
       });

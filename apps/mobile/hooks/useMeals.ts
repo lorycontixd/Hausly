@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
+import { logMealSlotClaimed } from "@/services/analytics";
 import { MealPlanEntry } from "@hausly/types";
 
 interface MealEntryCreate {
@@ -34,7 +35,12 @@ export function useCreateMeal(householdId: string | null) {
   return useMutation({
     mutationFn: (data: MealEntryCreate) =>
       api.post<MealPlanEntry>(`/households/${householdId}/meals`, data),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      const today = new Date().toISOString().split("T")[0];
+      const dayOffset = Math.round(
+        (new Date(variables.date).getTime() - new Date(today).getTime()) / 86400000,
+      );
+      logMealSlotClaimed(variables.slot, dayOffset);
       queryClient.invalidateQueries({ queryKey: ["meals", householdId] });
     },
   });

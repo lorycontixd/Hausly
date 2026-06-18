@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services/api";
+import { logGrocerySessionCompleted } from "@/services/analytics";
 import { GroceryItem } from "@hausly/types";
 
 interface GroceryList {
@@ -188,7 +189,12 @@ export function useCompleteSession(householdId: string | null) {
         `/households/${householdId}/grocery/session/complete`,
         data
       ),
-    onSettled: () => {
+    onSuccess: (result, variables) => {
+      logGrocerySessionCompleted(
+        variables.bought_item_ids.length,
+        0,
+        variables.create_expense,
+      );
       queryClient.resetQueries({
         queryKey: ["grocery", "items", householdId],
       });

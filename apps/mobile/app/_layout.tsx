@@ -1,8 +1,20 @@
 import { useEffect } from "react";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Stack, usePathname, useRouter, useSegments } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { AuthProvider, useAuthContext } from "@/providers/AuthProvider";
+import { trackScreenView } from "@/services/telemetry";
+import '@/services/telemetry';
+
+function NavigationTracker() {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (pathname) {
+      trackScreenView(pathname);
+    }
+  }, [pathname]);
+  return null;
+}
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status, hasHousehold, profileLoaded } = useAuthContext();
@@ -41,6 +53,7 @@ export default function RootLayout() {
   return (
     <QueryProvider>
       <AuthProvider>
+        <NavigationTracker />
         <AuthGuard>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />

@@ -18,7 +18,7 @@
 // 1. Secrets are stored in Key Vault (manually or via CI/CD pipeline)
 // 2. Container App has a "managed identity" (like a service account)
 // 3. We grant that identity "Key Vault Secrets User" role (read-only)
-// 4. Container App references secrets like: keyVaultUrl: 'https://kv-hausly-dev.vault.azure.net/secrets/DATABASE-URL'
+// 4. Container App references secrets like: keyVaultUrl: 'https://kv-hauslyapp-dev.vault.azure.net/secrets/DATABASE-URL'
 // 5. At startup, Container Apps resolves the reference and injects the value
 //
 // SECURITY MODEL:
@@ -41,7 +41,7 @@ param location string
 
 // ─── RESOURCE DEFINITION ────────────────────────────────────────────────────
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
-  name: 'kv-hausly-${environment}'
+  name: 'kv-hauslyapp-${environment}'
   location: location
   properties: {
     // Standard SKU: software-protected keys. ~€0.03/10K operations.
