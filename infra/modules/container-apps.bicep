@@ -127,10 +127,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       // Ingress: How external traffic reaches the app
       ingress: {
-        external: true              // Accessible from the internet
-        targetPort: 8000            // FastAPI listens on port 8000 (see Dockerfile)
-        transport: 'http'           // Container Apps handles TLS termination for us
-        allowInsecure: false        // Redirect HTTP → HTTPS automatically
+        external: true // Accessible from the internet
+        targetPort: 8000 // FastAPI listens on port 8000 (see Dockerfile)
+        transport: 'http' // Container Apps handles TLS termination for us
+        allowInsecure: false // Redirect HTTP → HTTPS automatically
 
         // CORS is handled by FastAPI middleware, not here.
         // Container Apps just forwards all traffic to the container.
@@ -149,12 +149,35 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 
       // Secrets: Values that Container Apps injects as env vars.
       // These are stored encrypted and never exposed in logs.
+      // Key Vault references resolve at revision start — the managed identity
+      // must have "Key Vault Secrets User" role (granted below).
       secrets: [
         {
           name: 'acr-password'
-          // Reference the ACR admin password.
-          // In a real setup, you'd use Key Vault references here.
-          value: listCredentials(resourceId('Microsoft.ContainerRegistry/registries', containerRegistryName), '2023-07-01').passwords[0].value
+          value: listCredentials(
+            resourceId('Microsoft.ContainerRegistry/registries', containerRegistryName),
+            '2023-07-01'
+          ).passwords[0].value
+        }
+        {
+          name: 'database-url'
+          keyVaultUrl: 'https://kv-hauslyapp-${environment}.vault.azure.net/secrets/DATABASE-URL'
+          identity: 'System'
+        }
+        {
+          name: 'signalr-connection-string'
+          keyVaultUrl: 'https://kv-hauslyapp-${environment}.vault.azure.net/secrets/SIGNALR-CONNECTION-STRING'
+          identity: 'System'
+        }
+        {
+          name: 'firebase-sa-json'
+          keyVaultUrl: 'https://kv-hauslyapp-${environment}.vault.azure.net/secrets/FIREBASE-SA-JSON'
+          identity: 'System'
+        }
+        {
+          name: 'appinsights-connection-string'
+          keyVaultUrl: 'https://kv-hauslyapp-${environment}.vault.azure.net/secrets/APPINSIGHTS-CONNECTION-STRING'
+          identity: 'System'
         }
       ]
     }
@@ -167,7 +190,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           // Initially uses a placeholder. CI/CD will update this.
           image: '${containerRegistryLoginServer}/hausly-api:latest'
           resources: {
-            cpu: json(cpu)    // json() converts string '0.25' to number 0.25
+            cpu: json(cpu) // json() converts string '0.25' to number 0.25
             memory: memory
           }
 
@@ -184,7 +207,22 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
               value: '8000'
             }
             {
-              // Tell the app where Key Vault is, so it can fetch secrets at startup
+              name: 'DATABASE_URL'
+              secretRef: 'database-url'
+            }
+            {
+              name: 'SIGNALR_CONNECTION_STRING'
+              secretRef: 'signalr-connection-string'
+            }
+            {
+              name: 'FIREBASE_SERVICE_ACCOUNT_JSON'
+              secretRef: 'firebase-sa-json'
+            }
+            {
+              name: 'APPINSIGHTS_CONNECTION_STRING'
+              secretRef: 'appinsights-connection-string'
+            }
+            {
               name: 'KEY_VAULT_NAME'
               value: keyVaultName
             }
@@ -221,7 +259,10 @@ resource keyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04
   name: guid(containerApp.id, keyVaultName, '4633458b-17de-408a-b874-0445c86b69e6')
   scope: resourceGroup()
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      '4633458b-17de-408a-b874-0445c86b69e6'
+    )
     principalId: containerApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
@@ -236,4 +277,3 @@ output appResourceId string = containerApp.id
 
 @description('Container App managed identity principal ID (for role assignments)')
 output appPrincipalId string = containerApp.identity.principalId
-

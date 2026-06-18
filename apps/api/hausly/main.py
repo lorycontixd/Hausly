@@ -3,6 +3,9 @@ import logging
 from azure.monitor.opentelemetry import configure_azure_monitor
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+from sqlalchemy import text
+
 from hausly.auth.router import router as auth_router
 from hausly.config import settings
 from hausly.database import async_session_factory
@@ -18,8 +21,6 @@ from hausly.ratelimit import limiter, rate_limit_exceeded_handler
 from hausly.realtime.router import router as realtime_router
 from hausly.telemetry import ExceptionTraceMiddleware
 from hausly.version import __version__
-from slowapi.errors import RateLimitExceeded
-from sqlalchemy import text
 
 # Initialize Application Insights (no-op if connection string is empty)
 if settings.appinsights_connection_string:
@@ -58,7 +59,7 @@ app.include_router(chores_router)
 app.include_router(realtime_router)
 
 
-@app.api_route("/api/health", methods=["GET", "HEAD"])
+@app.get("/api/health")
 async def health_check() -> dict[str, str]:
     """Deep health check — verifies DB connectivity."""
     try:
@@ -67,6 +68,3 @@ async def health_check() -> dict[str, str]:
     except Exception:
         return {"status": "degraded", "db": "unreachable"}
     return {"status": "ok", "db": "connected"}
-
-
-    
