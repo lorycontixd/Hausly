@@ -58,7 +58,7 @@ app.include_router(chores_router)
 app.include_router(realtime_router)
 
 
-@app.get("/api/health")
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 async def health_check() -> dict[str, str]:
     """Deep health check — verifies DB connectivity."""
     try:
