@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from hausly.auth.router import router as auth_router
 from hausly.config import settings
+from hausly.database import async_session_factory
 from hausly.jobs import lifespan_jobs
 from hausly.middleware import RequestSizeLimitMiddleware
 from hausly.modules.chores.router import router as chores_router
@@ -18,6 +19,7 @@ from hausly.realtime.router import router as realtime_router
 from hausly.telemetry import ExceptionTraceMiddleware
 from hausly.version import __version__
 from slowapi.errors import RateLimitExceeded
+from sqlalchemy import text
 
 # Initialize Application Insights (no-op if connection string is empty)
 if settings.appinsights_connection_string:
@@ -58,4 +60,13 @@ app.include_router(realtime_router)
 
 @app.get("/api/health")
 async def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+    """Deep health check — verifies DB connectivity."""
+    try:
+        async with async_session_factory() as session:
+            await session.execute(text("SELECT 1"))
+    except Exception:
+        return {"status": "degraded", "db": "unreachable"}
+    return {"status": "ok", "db": "connected"}
+
+
+    
