@@ -107,7 +107,7 @@ Firebase Auth is NOT deployed via Bicep — it's a Google service configured thr
 3. Add an Android app (package: `com.hausly.app`)
 4. Download `google-services.json` (Android) and `GoogleService-Info.plist` (iOS)
 5. Place them in `apps/mobile/android/app/` and `apps/mobile/ios/` respectively
-
+    
 ### 1.5 Firebase Projects (Dev vs Prod)
 Create **two separate Firebase projects**:
 - `hausly-dev` — for development

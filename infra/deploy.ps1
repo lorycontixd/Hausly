@@ -17,7 +17,7 @@ param(
     [string]$Environment,
 
     [Parameter(Mandatory = $false)]
-    [string]$Location = 'westeurope',
+    [string]$Location = 'swedencentral',
 
     [Parameter(Mandatory = $false)]
     [switch]$WhatIf
