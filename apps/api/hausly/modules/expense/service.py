@@ -1,3 +1,4 @@
+import logging
 import uuid
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -8,8 +9,11 @@ from hausly.modules.expense.schemas import (BalanceEntry, ExpenseCreate,
                                             ExpenseUpdate,
                                             SettlementSuggestion, SplitInput)
 from hausly.modules.household.models import HouseholdMembership
+from hausly.telemetry import dims
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+
+logger = logging.getLogger("hausly.expense")
 
 
 class ExpenseError(Exception):
@@ -214,6 +218,11 @@ async def confirm_expense(
 
     await db.commit()
     await db.refresh(expense)
+
+    logger.info(
+        "Expense confirmed | expense=%s", expense_id,
+        extra=dims(household_id=household_id, expense_id=expense_id),
+    )
 
     # Reload splits
     splits_stmt = select(ExpenseSplit).where(ExpenseSplit.expense_id == expense.id)
@@ -434,4 +443,9 @@ async def settle_split(
 
     await db.commit()
     await db.refresh(split)
+
+    logger.info(
+        "Split settled | split=%s expense=%s", split_id, split.expense_id,
+        extra=dims(household_id=household_id, split_id=split_id),
+    )
     return split

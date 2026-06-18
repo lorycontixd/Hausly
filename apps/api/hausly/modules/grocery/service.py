@@ -1,3 +1,4 @@
+import logging
 import uuid
 from datetime import UTC, datetime
 
@@ -10,8 +11,11 @@ from hausly.modules.grocery.schemas import (GroceryItemCreate,
                                             SessionCompleteResponse)
 from hausly.modules.household.models import HouseholdMembership
 from hausly.modules.household.service import get_household_settings
+from hausly.telemetry import dims
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+
+logger = logging.getLogger("hausly.grocery")
 
 
 class GroceryError(Exception):
@@ -125,6 +129,7 @@ async def add_items(
     await db.commit()
     for item in created_items:
         await db.refresh(item)
+
     return created_items
 
 
@@ -300,6 +305,14 @@ async def complete_session(
 
     await db.commit()
 
+    logger.info(
+        "Shopping session completed | items_removed=%d expense_created=%s",
+        items_removed, expense_draft_id is not None,
+        extra=dims(
+            household_id=household_id, user_id=user_id,
+            items_removed=items_removed, expense_draft_id=expense_draft_id,
+        ),
+    )
     return SessionCompleteResponse(
         items_removed=items_removed,
         expense_draft_id=expense_draft_id,

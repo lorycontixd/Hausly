@@ -1,3 +1,5 @@
+import logging
+
 import firebase_admin
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -6,8 +8,11 @@ from firebase_admin import credentials
 from hausly.config import settings
 from hausly.database import get_db
 from hausly.modules.users.models import User
+from hausly.telemetry import dims, enrich_span
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+
+logger = logging.getLogger("hausly.auth")
 
 _firebase_app: firebase_admin.App | None = None
 _bearer_scheme = HTTPBearer()
@@ -32,12 +37,14 @@ def verify_firebase_token(token: str) -> dict:
     try:
         decoded = firebase_auth.verify_id_token(token)
     except (firebase_auth.InvalidIdTokenError, firebase_auth.ExpiredIdTokenError) as e:
+        logger.warning("Auth token rejected (invalid/expired)", extra=dims(reason=type(e).__name__))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
     except Exception as e:
+        logger.error("Token verification failed", exc_info=True, extra=dims(reason=type(e).__name__))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token verification failed",
@@ -68,5 +75,7 @@ async def get_current_user(
         db.add(user)
         await db.commit()
         await db.refresh(user)
+        logger.info("New user auto-created | user=%s", user.id, extra=dims(user_id=user.id))
 
+    enrich_span(user_id=user.id, firebase_uid=firebase_uid)
     return user

@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     azure_openai_endpoint: str = ""
     azure_openai_key: str = ""
 
+    # Azure Application Insights
+    appinsights_connection_string: str = ""
+    
     # CORS
     cors_origins: str = "http://localhost:8081,http://localhost:19006"
 

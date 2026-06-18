@@ -8,6 +8,7 @@ from hausly.modules.household.models import HouseholdMembership
 from hausly.modules.household.service import (_get_membership,
                                               get_household_settings)
 from hausly.modules.users.models import User
+from hausly.telemetry import enrich_span
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -20,6 +21,7 @@ async def get_household_membership(
     membership = await _get_membership(db, household_id, user.id)
     if membership is None:
         raise HTTPException(status_code=403, detail="Not a member of this household")
+    enrich_span(household_id=household_id, member_role=membership.role.value)
     return membership
 
 

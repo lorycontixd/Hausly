@@ -1,3 +1,4 @@
+import logging
 import secrets
 import uuid
 from datetime import UTC, datetime
@@ -10,8 +11,11 @@ from hausly.modules.household.schemas import (HouseholdCreate,
                                               HouseholdSettingsUpdate,
                                               HouseholdUpdate, LeaveResponse)
 from hausly.modules.users.models import User
+from hausly.telemetry import dims
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
+
+logger = logging.getLogger("hausly.household")
 
 
 class HouseholdError(Exception):
@@ -57,6 +61,11 @@ async def create_household(
 
     await db.commit()
     await db.refresh(household)
+
+    logger.info(
+        "Household created | household=%s", household.id,
+        extra=dims(household_id=household.id, user_id=user.id),
+    )
     return household
 
 
@@ -273,6 +282,11 @@ async def leave_household(
     await meal_on_member_leave(db, household_id, user.id, datetime.now(UTC).date())
 
     await db.commit()
+
+    logger.info(
+        "Member left household | household=%s", household_id,
+        extra=dims(household_id=household_id, user_id=user.id),
+    )
     return LeaveResponse(
         unsettled_expenses=unsettled_expenses,
         pending_chores=pending_chores,
