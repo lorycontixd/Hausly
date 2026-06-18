@@ -10,10 +10,11 @@ from hausly.modules.household.router import invite_router
 from hausly.modules.household.router import router as household_router
 from hausly.modules.meal.router import router as meal_router
 from hausly.realtime.router import router as realtime_router
+from hausly.version import __version__
 
 app = FastAPI(
     title="Hausly API",
-    version="0.1.0",
+    version=__version__,
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
     lifespan=lifespan_jobs,

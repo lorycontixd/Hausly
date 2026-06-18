@@ -65,6 +65,12 @@ class ChoreAssignee(SQLModel, table=True):
 
 class ChoreAssignment(SQLModel, table=True):
     __tablename__ = "chore_assignments"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "chore_id", "due_date", "assigned_to_user_id",
+            name="uq_chore_assignment_chore_date_user",
+        ),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     chore_id: uuid.UUID = Field(foreign_key="chores.id", index=True)

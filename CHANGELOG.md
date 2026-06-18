@@ -2,6 +2,37 @@
 
 ## [Unreleased]
 
+### Fixed (Phase 16 — Integration Testing & Polish)
+- **SignalR event name mismatch**: Backend now emits underscore-separated event names matching mobile client expectations (e.g., `grocery_item_added` instead of `grocery:item_added`)
+- Renamed structural event mismatches: `meal:updated` → `meal_entry_updated`, `chore:completed` → `assignment_completed`, `chore:assignment_updated` → `assignment_updated`
+- Added missing `meal_entry_created` SignalR event wrapper for create operations
+- Fixed mobile SignalR test count for `household_settings_updated` handler registration
+
+### Added (Phase 16 — Integration Testing & Polish)
+- Cross-module integration test suite (`tests/modules/test_integration.py`):
+  - Grocery→Expense chain: session complete → draft expense with equal splits
+  - Personal items excluded from expense generation
+  - Expense confirmation and balance calculation
+  - Meal headcount defaults to active member count
+  - Slot conflict detection (409)
+  - Member leave: chore assignee removal + future assignment cleanup
+  - Member leave: future meal entry cleanup
+  - Recurring expense generation with staleness cap
+  - Chore overdue blocking prevents new assignments
+  - Error handling edge cases (404, 409, validation)
+- Total test count: 236 backend, 216 mobile (all passing)
+
+### Added (Phase 15 — Mobile: Chore Module)
+- Chore list screen (`app/(tabs)/chores.tsx`): assignments grouped by date (Overdue, Today, Tomorrow, This Week, Later), overdue highlighting with action buttons
+- TanStack Query hooks (`hooks/useChores.ts`): `useChores`, `useChore`, `useAssignments`, `useCreateChore`, `useUpdateChore`, `useDeleteChore`, `useCompleteAssignment`, `usePostponeAssignment`, `useCancelAssignment` — all with cache invalidation
+- ChoreCreateSheet: name, start date, recurring toggle with interval/unit selectors, assignee multi-select (creator must be included), rotation toggle with personal frequency preview
+- ChoreAssignmentCard: chore name, assignee, due date label, overdue styling, "Done" button on all pending, "Postpone"/"Cancel" on overdue only, completed-by tag
+- ChoreGroupedList: date-based grouping logic with section headers and counts
+- PostponeSheet: date picker for rescheduling overdue assignments
+- Chore Zustand store (`stores/choreStore.ts`): create/edit sheet visibility, action sheet for assignments
+- SignalR events already wired (`chore_created`, `chore_deleted`, `assignment_completed`, `assignment_updated`) to invalidate chore queries
+- 18 unit tests: assignment grouping (5), rotation preview (5), validation (3), store state (5)
+
 ### Added (Phase 14 — Mobile: Meal Planner Module)
 - Meal planner screen (`app/(tabs)/meal.tsx`): weekly diary view with 7 days × 2 slots (lunch/dinner), week navigation (prev/next), slot claiming
 - TanStack Query hooks (`hooks/useMeals.ts`): `useMealEntries` (date-range fetch), `useCreateMeal` (with 409 conflict handling), `useUpdateMeal`, `useDeleteMeal` — all with cache invalidation

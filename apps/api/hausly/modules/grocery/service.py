@@ -1,6 +1,8 @@
 import uuid
 from datetime import UTC, datetime
 
+from hausly.modules.expense.models import (Expense, ExpenseSource,
+                                           ExpenseSplit, ExpenseStatus)
 from hausly.modules.grocery.models import GroceryItem, GroceryList
 from hausly.modules.grocery.schemas import (GroceryItemCreate,
                                             GroceryItemUpdate,
@@ -251,11 +253,36 @@ async def complete_session(
         member_count = len(active_members)
         share_amount = round(data.receipt_total / member_count, 2) if member_count > 0 else data.receipt_total
 
-        expense_draft_id = uuid.uuid4()
+        # Persist expense draft to DB
+        expense = Expense(
+            household_id=household_id,
+            title=f"Groceries — {len(non_personal_names)} items",
+            amount=data.receipt_total,
+            currency=settings.default_currency,
+            paid_by_user_id=user_id,
+            status=ExpenseStatus.draft,
+            source=ExpenseSource.grocery_integration,
+        )
+        db.add(expense)
+        await db.flush()
+
+        expense_draft_id = expense.id
+
+        # Persist splits
+        for m in active_members:
+            split = ExpenseSplit(
+                expense_id=expense.id,
+                household_id=household_id,
+                user_id=m.user_id,
+                share_amount=share_amount,
+            )
+            db.add(split)
+
+        # Build response dict for the client
         expense_draft = {
-            "id": str(expense_draft_id),
+            "id": str(expense.id),
             "household_id": str(household_id),
-            "title": f"Groceries — {len(non_personal_names)} items",
+            "title": expense.title,
             "amount": data.receipt_total,
             "currency": settings.default_currency,
             "paid_by_user_id": str(user_id),

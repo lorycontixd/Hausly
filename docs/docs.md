@@ -118,7 +118,76 @@ Contains:
 Use when:
 - Implementing or styling mobile UI components.
 - Adding new module screens (reference module accent colors).
+
+# security.md
+Purpose: Security requirements and implementation guide for production readiness.
+Contains:
+- Current security posture assessment (what exists vs what's missing).
+- Secret management (Azure Key Vault) implementation guide.
+- API rate limiting configuration and reasoning.
+- Dependency vulnerability scanning tools (Dependabot, pip-audit, npm audit, bandit).
+- Security headers, request size limits, audit logging.
+- Input validation hardening checklist.
+- Account deletion and GDPR compliance requirements.
+- Threat model (STRIDE) and pre-production security checklist.
+Use when:
+- Implementing security hardening features.
+- Preparing for production deployment.
+- Adding rate limiting or input validation.
+- Setting up Key Vault or CI security scanning.
+
+# ci-cd-plan.md
+Purpose: CI/CD pipeline design and implementation plan using GitHub Actions.
+Contains:
+- Trigger strategy (PR validation, deploy on merge, scheduled audits, mobile releases).
+- Stage details with reasoning: lint, test, security scan, build, deploy.
+- Full workflow YAML files (validate, deploy, audit, mobile-release).
+- Environment and secrets configuration.
+- GitHub Actions minutes budget estimation.
+- Rollback strategy for API, database, and mobile.
+- Implementation phases (4-day plan).
+Use when:
+- Setting up or modifying CI/CD workflows.
+- Adding new pipeline stages or tools.
+- Debugging deployment failures.
+- Understanding the deployment flow from PR to production.
+
+# planning/services-implementation-plan.md
+Purpose: Master implementation plan for all production-readiness services (monitoring, security, analytics, DevOps).
+Contains:
+- Priority-ordered list of all services to implement.
+- Azure Application Insights setup (observability).
+- Firebase Crashlytics setup (mobile crash reporting).
+- Azure Key Vault implementation (secret management).
+- API rate limiting configuration with reasoning per endpoint category.
+- Firebase Analytics deep integration (events, user properties, funnels).
+- CI/CD pipeline overview and cost summary.
+- Health check monitoring and alerting rules.
+- Deferred items: push notifications, GDPR, custom domain, OTA updates.
+- Full cost breakdown (fits within €50/month budget).
+Use when:
+- Deciding what to implement next for production readiness.
+- Understanding cost implications of service choices.
+- Implementing monitoring, analytics, or security features.
+- Checking integration dependencies between services.
 - Making design decisions for v1 mobile phases (11–16).
+
+# infrastructure-setup.md
+Purpose: Step-by-step cloud environment setup guide (Firebase + Azure) with Bicep deployment instructions.
+Contains:
+- Architecture diagram showing all cloud services and their relationships.
+- Firebase Auth setup steps (manual, per environment).
+- Azure resource provisioning via Bicep (dev and prod environments).
+- Post-deployment configuration (Key Vault secrets, connection strings).
+- Azure OpenAI setup guide (requires separate approval).
+- Dev vs Prod tier comparison table with cost estimates.
+- Troubleshooting guide for common deployment issues.
+Use when:
+- Setting up the cloud environment for the first time.
+- Deploying infrastructure changes.
+- Understanding how dev and prod environments differ.
+- Debugging Azure resource configuration.
+- Onboarding a new developer to the infrastructure.
 
 ## Agent Guidance
 1. Read docs.md first.

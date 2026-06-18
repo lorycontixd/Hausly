@@ -262,24 +262,24 @@ Client connects to the SignalR hub at `/hubs/household` after auth. Server assig
 
 | Event | Payload | Trigger |
 |-------|---------|---------|
-| `grocery:item_added` | `{ item }` | New item added to active list |
-| `grocery:item_updated` | `{ item }` | Item modified (bought, edited) |
-| `grocery:item_removed` | `{ item_id }` | Item deleted |
-| `grocery:list_archived` | `{ list_id }` | List cleared/archived |
-| `expense:created` | `{ expense }` | New expense (draft or confirmed) |
-| `expense:confirmed` | `{ expense_id }` | Draft confirmed |
-| `expense:settled` | `{ split_id }` | Split marked settled |
-| `meal:updated` | `{ entry }` | Meal entry created/updated |
-| `meal:removed` | `{ entry_id }` | Meal entry deleted |
-| `chore:completed` | `{ assignment_id, completed_by }` | Chore marked done |
-| `chore:created` | `{ chore }` | New chore created |
-| `chore:deleted` | `{ chore_id }` | Chore deleted |
-| `chore:assignment_updated` | `{ assignment }` | Assignment postponed or cancelled |
-| `grocery:session_completed` | `{ bought_item_ids, expense_draft_id? }` | Shopping session completed |
-| `pinboard:note_added` | `{ note }` | New pinboard note |
-| `pinboard:note_updated` | `{ note }` | Note edited/pinned |
-| `member:joined` | `{ user }` | New member joined household |
-| `member:left` | `{ user_id }` | Member left |
+| `grocery_item_added` | `{ item }` | New item added to active list |
+| `grocery_item_updated` | `{ item }` | Item modified (bought, edited) |
+| `grocery_item_removed` | `{ item_id }` | Item deleted |
+| `grocery_list_archived` | `{ list_id }` | List cleared/archived |
+| `grocery_session_completed` | `{ bought_item_ids, expense_draft_id? }` | Shopping session completed |
+| `expense_created` | `{ expense }` | New expense (draft or confirmed) |
+| `expense_confirmed` | `{ expense_id }` | Draft confirmed |
+| `expense_settled` | `{ split_id }` | Split marked settled |
+| `meal_entry_created` | `{ entry }` | Meal entry created |
+| `meal_entry_updated` | `{ entry }` | Meal entry updated |
+| `meal_entry_removed` | `{ entry_id }` | Meal entry deleted |
+| `chore_created` | `{ chore }` | New chore created |
+| `chore_deleted` | `{ chore_id }` | Chore deleted |
+| `assignment_completed` | `{ assignment_id, completed_by }` | Chore marked done |
+| `assignment_updated` | `{ assignment }` | Assignment postponed or cancelled |
+| `member_joined` | `{ user }` | New member joined household |
+| `member_left` | `{ user_id }` | Member left |
+| `household_settings_updated` | `{ ...settings }` | Household settings changed |
 
 ### Events (Client → Server)
 

@@ -37,6 +37,7 @@ class ChoreUpdate(BaseModel):
 class AssigneeResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
+    display_name: str
     position: int
 
     model_config = {"from_attributes": True}
@@ -62,13 +63,16 @@ class ChoreResponse(BaseModel):
 class AssignmentResponse(BaseModel):
     id: uuid.UUID
     chore_id: uuid.UUID
+    chore_name: str
     household_id: uuid.UUID
     assigned_to_user_id: uuid.UUID
+    assigned_to_display_name: str
     due_date: date
     postponed_to: date | None
     status: AssignmentStatus
     completed_at: datetime | None
     completed_by_user_id: uuid.UUID | None
+    completed_by_display_name: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

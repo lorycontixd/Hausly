@@ -247,41 +247,47 @@ class TestPhase7EventPayloads:
         await signalr_svc.expense_settled(household_id, "split-1")
 
         # Meal events
-        await signalr_svc.meal_updated(household_id, {"id": "entry-1"})
-        await signalr_svc.meal_removed(household_id, "entry-1")
+        await signalr_svc.meal_entry_created(household_id, {"id": "entry-0"})
+        await signalr_svc.meal_entry_updated(household_id, {"id": "entry-1"})
+        await signalr_svc.meal_entry_removed(household_id, "entry-1")
 
         # Chore events
         await signalr_svc.chore_created(household_id, {"id": "chore-1"})
         await signalr_svc.chore_deleted(household_id, "chore-1")
-        await signalr_svc.chore_completed(household_id, "assign-1", "user-1")
-        await signalr_svc.chore_assignment_updated(household_id, {"id": "assign-1"})
+        await signalr_svc.assignment_completed(household_id, "assign-1", "user-1")
+        await signalr_svc.assignment_updated(household_id, {"id": "assign-1"})
 
         # Member events
         await signalr_svc.member_joined(household_id, {"id": "user-1"})
         await signalr_svc.member_left(household_id, "user-1")
 
-        # Verify all 16 calls (15 events + member_left/joined)
-        assert signalr_svc.broadcast_to_household.call_count == 16
+        # Household settings
+        await signalr_svc.household_settings_updated(household_id, {"default_currency": "USD"})
 
-        # Verify target names match api-reference.md catalogue
+        # Verify all 18 calls
+        assert signalr_svc.broadcast_to_household.call_count == 18
+
+        # Verify target names match mobile client expectations (underscore-separated)
         targets = [call[0][1] for call in signalr_svc.broadcast_to_household.call_args_list]
         expected_targets = [
-            "grocery:item_added",
-            "grocery:item_updated",
-            "grocery:item_removed",
-            "grocery:list_archived",
-            "grocery:session_completed",
-            "expense:created",
-            "expense:confirmed",
-            "expense:settled",
-            "meal:updated",
-            "meal:removed",
-            "chore:created",
-            "chore:deleted",
-            "chore:completed",
-            "chore:assignment_updated",
-            "member:joined",
-            "member:left",
+            "grocery_item_added",
+            "grocery_item_updated",
+            "grocery_item_removed",
+            "grocery_list_archived",
+            "grocery_session_completed",
+            "expense_created",
+            "expense_confirmed",
+            "expense_settled",
+            "meal_entry_created",
+            "meal_entry_updated",
+            "meal_entry_removed",
+            "chore_created",
+            "chore_deleted",
+            "assignment_completed",
+            "assignment_updated",
+            "member_joined",
+            "member_left",
+            "household_settings_updated",
         ]
         assert targets == expected_targets
 
@@ -300,7 +306,7 @@ class TestPhase7EventPayloads:
         )
 
         call_args = signalr_svc.broadcast_to_household.call_args
-        assert call_args[0][1] == "grocery:session_completed"
+        assert call_args[0][1] == "grocery_session_completed"
         payload = call_args[0][2]
         assert payload["bought_item_ids"] == ["id-1", "id-2", "id-3"]
         assert payload["expense_draft_id"] == "exp-draft-1"
@@ -309,14 +315,14 @@ class TestPhase7EventPayloads:
     async def test_chore_completed_payload_structure(self, signalr_svc, household_id):
         """Chore completed event has assignment_id and completed_by.
 
-        Validates api-reference.md: chore:completed payload.
+        Validates api-reference.md: assignment_completed payload.
         """
         signalr_svc.broadcast_to_household = AsyncMock()
 
-        await signalr_svc.chore_completed(household_id, "assign-abc", "user-xyz")
+        await signalr_svc.assignment_completed(household_id, "assign-abc", "user-xyz")
 
         call_args = signalr_svc.broadcast_to_household.call_args
-        assert call_args[0][1] == "chore:completed"
+        assert call_args[0][1] == "assignment_completed"
         payload = call_args[0][2]
         assert payload["assignment_id"] == "assign-abc"
         assert payload["completed_by"] == "user-xyz"

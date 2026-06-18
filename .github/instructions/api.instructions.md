@@ -82,6 +82,13 @@ async def create_item(
 - Each script must include a header comment explaining: purpose, usage instructions, constraints respected, and a warning if it bypasses service-layer logic.
 - Scripts are for dev/test use only. Never run raw SQL against production without a logged decision.
 
+## Versioning
+
+- Source of truth: `apps/api/pyproject.toml` → `version` field.
+- Runtime access: `from hausly.version import __version__` (reads via `importlib.metadata`).
+- Never hardcode version strings in Python code. Always import from `hausly.version`.
+- When bumping, also update: `README.md` (Versions table), `CHANGELOG.md`.
+
 ## Commit Messages
 
 Prefix: `api:` (e.g., `api: add grocery session complete endpoint`)

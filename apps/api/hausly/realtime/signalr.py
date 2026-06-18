@@ -117,64 +117,67 @@ class SignalRService:
     # --- Type-safe event wrappers ---
 
     async def grocery_item_added(self, household_id: uuid.UUID, item: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "grocery:item_added", item)
+        await self.broadcast_to_household(household_id, "grocery_item_added", item)
 
     async def grocery_item_updated(self, household_id: uuid.UUID, item: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "grocery:item_updated", item)
+        await self.broadcast_to_household(household_id, "grocery_item_updated", item)
 
     async def grocery_item_removed(self, household_id: uuid.UUID, item_id: str) -> None:
-        await self.broadcast_to_household(household_id, "grocery:item_removed", {"item_id": item_id})
+        await self.broadcast_to_household(household_id, "grocery_item_removed", {"item_id": item_id})
 
     async def grocery_list_archived(self, household_id: uuid.UUID, list_id: str) -> None:
-        await self.broadcast_to_household(household_id, "grocery:list_archived", {"list_id": list_id})
+        await self.broadcast_to_household(household_id, "grocery_list_archived", {"list_id": list_id})
 
     async def grocery_session_completed(
         self, household_id: uuid.UUID, bought_item_ids: list[str], expense_draft_id: str | None
     ) -> None:
         await self.broadcast_to_household(
             household_id,
-            "grocery:session_completed",
+            "grocery_session_completed",
             {"bought_item_ids": bought_item_ids, "expense_draft_id": expense_draft_id},
         )
 
     async def expense_created(self, household_id: uuid.UUID, expense: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "expense:created", expense)
+        await self.broadcast_to_household(household_id, "expense_created", expense)
 
     async def expense_confirmed(self, household_id: uuid.UUID, expense_id: str) -> None:
-        await self.broadcast_to_household(household_id, "expense:confirmed", {"expense_id": expense_id})
+        await self.broadcast_to_household(household_id, "expense_confirmed", {"expense_id": expense_id})
 
     async def expense_settled(self, household_id: uuid.UUID, split_id: str) -> None:
-        await self.broadcast_to_household(household_id, "expense:settled", {"split_id": split_id})
+        await self.broadcast_to_household(household_id, "expense_settled", {"split_id": split_id})
 
-    async def meal_updated(self, household_id: uuid.UUID, entry: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "meal:updated", entry)
+    async def meal_entry_created(self, household_id: uuid.UUID, entry: dict[str, Any]) -> None:
+        await self.broadcast_to_household(household_id, "meal_entry_created", entry)
 
-    async def meal_removed(self, household_id: uuid.UUID, entry_id: str) -> None:
-        await self.broadcast_to_household(household_id, "meal:removed", {"entry_id": entry_id})
+    async def meal_entry_updated(self, household_id: uuid.UUID, entry: dict[str, Any]) -> None:
+        await self.broadcast_to_household(household_id, "meal_entry_updated", entry)
+
+    async def meal_entry_removed(self, household_id: uuid.UUID, entry_id: str) -> None:
+        await self.broadcast_to_household(household_id, "meal_entry_removed", {"entry_id": entry_id})
 
     async def chore_created(self, household_id: uuid.UUID, chore: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "chore:created", chore)
+        await self.broadcast_to_household(household_id, "chore_created", chore)
 
     async def chore_deleted(self, household_id: uuid.UUID, chore_id: str) -> None:
-        await self.broadcast_to_household(household_id, "chore:deleted", {"chore_id": chore_id})
+        await self.broadcast_to_household(household_id, "chore_deleted", {"chore_id": chore_id})
 
-    async def chore_completed(
+    async def assignment_completed(
         self, household_id: uuid.UUID, assignment_id: str, completed_by: str
     ) -> None:
         await self.broadcast_to_household(
             household_id,
-            "chore:completed",
+            "assignment_completed",
             {"assignment_id": assignment_id, "completed_by": completed_by},
         )
 
-    async def chore_assignment_updated(self, household_id: uuid.UUID, assignment: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "chore:assignment_updated", assignment)
+    async def assignment_updated(self, household_id: uuid.UUID, assignment: dict[str, Any]) -> None:
+        await self.broadcast_to_household(household_id, "assignment_updated", assignment)
 
     async def member_joined(self, household_id: uuid.UUID, user: dict[str, Any]) -> None:
-        await self.broadcast_to_household(household_id, "member:joined", user)
+        await self.broadcast_to_household(household_id, "member_joined", user)
 
     async def member_left(self, household_id: uuid.UUID, user_id: str) -> None:
-        await self.broadcast_to_household(household_id, "member:left", {"user_id": user_id})
+        await self.broadcast_to_household(household_id, "member_left", {"user_id": user_id})
 
     async def household_settings_updated(self, household_id: uuid.UUID, settings: dict[str, Any]) -> None:
         await self.broadcast_to_household(household_id, "household_settings_updated", settings)

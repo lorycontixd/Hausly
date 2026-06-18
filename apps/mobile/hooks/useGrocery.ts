@@ -188,7 +188,7 @@ export function useCompleteSession(householdId: string | null) {
         `/households/${householdId}/grocery/session/complete`,
         data
       ),
-    onSuccess: () => {
+    onSettled: () => {
       queryClient.resetQueries({
         queryKey: ["grocery", "items", householdId],
       });

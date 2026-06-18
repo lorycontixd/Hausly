@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from hausly.modules.expense.models import ExpenseSource, ExpenseStatus
 from pydantic import BaseModel, model_validator
@@ -19,6 +19,9 @@ class ExpenseCreate(BaseModel):
     splits: list[SplitInput]
     status: ExpenseStatus = ExpenseStatus.draft
     source: ExpenseSource = ExpenseSource.manual
+    is_recurring: bool = False
+    recurrence_rule: str | None = None
+    next_occurrence_date: date | None = None
 
     @model_validator(mode="after")
     def validate_splits_sum(self) -> "ExpenseCreate":
@@ -26,6 +29,15 @@ class ExpenseCreate(BaseModel):
         if abs(total - self.amount) > 0.01:
             msg = f"Sum of splits ({total}) must equal expense amount ({self.amount})"
             raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_recurring_fields(self) -> "ExpenseCreate":
+        if self.is_recurring:
+            if not self.recurrence_rule:
+                raise ValueError("recurrence_rule is required for recurring expenses")
+            if not self.next_occurrence_date:
+                raise ValueError("next_occurrence_date is required for recurring expenses")
         return self
 
 

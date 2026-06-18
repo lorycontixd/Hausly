@@ -96,8 +96,11 @@ describe("SignalR Client", () => {
     expect(registeredEvents).toContain("member_joined");
     expect(registeredEvents).toContain("member_left");
 
-    // Total: 17 event registrations (15 types + grocery_session_completed invalidates 2 query keys)
-    expect(mockOn).toHaveBeenCalledTimes(17);
+    // Household settings (1)
+    expect(registeredEvents).toContain("household_settings_updated");
+
+    // Total: 18 event registrations
+    expect(mockOn).toHaveBeenCalledTimes(18);
   });
 
   // Success criterion: Events invalidate correct query caches

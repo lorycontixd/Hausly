@@ -1,10 +1,12 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { View, Text, TextInput, Pressable, Alert } from "react-native";
+import { View, Text, TextInput, Pressable, Alert, Switch } from "react-native";
 import { HouseholdMember } from "@hausly/types";
 import { Sheet, Button, Input } from "@/components/ui";
 import { SplitMode } from "@/stores/expenseStore";
 import { styles } from "./CreateExpenseSheet.styles";
 import { colors } from "@/constants/theme";
+
+type RecurrenceFrequency = "daily" | "weekly" | "monthly";
 
 interface CreateExpenseSheetProps {
   visible: boolean;
@@ -20,6 +22,9 @@ interface CreateExpenseSheetProps {
     paid_by_user_id: string;
     splits: { user_id: string; share_amount: number }[];
     status: "draft" | "confirmed";
+    is_recurring?: boolean;
+    recurrence_rule?: string | null;
+    next_occurrence_date?: string | null;
   }) => void;
   isSubmitting: boolean;
 }
@@ -43,6 +48,8 @@ export function CreateExpenseSheet({
   );
   const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [percentages, setPercentages] = useState<Record<string, string>>({});
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurrenceFrequency, setRecurrenceFrequency] = useState<RecurrenceFrequency>("monthly");
 
   // Reset form state whenever sheet opens
   useEffect(() => {
@@ -55,6 +62,8 @@ export function CreateExpenseSheet({
       setParticipants(members.map((m) => m.user_id));
       setCustomAmounts({});
       setPercentages({});
+      setIsRecurring(false);
+      setRecurrenceFrequency("monthly");
     }
   }, [visible, currentUserId, members]);
 
@@ -134,6 +143,14 @@ export function CreateExpenseSheet({
         return;
       }
 
+      // Recurring expenses must start as draft (per architectural rule)
+      const effectiveStatus = isRecurring ? "draft" : status;
+
+      // Compute next_occurrence_date as tomorrow for new recurring expenses
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextDate = tomorrow.toISOString().split("T")[0];
+
       onSubmit({
         title: title.trim(),
         amount: parsedAmount,
@@ -141,7 +158,12 @@ export function CreateExpenseSheet({
         category: category.trim() || null,
         paid_by_user_id: paidByUserId,
         splits: computedSplits,
-        status,
+        status: effectiveStatus,
+        is_recurring: isRecurring || undefined,
+        recurrence_rule: isRecurring
+          ? `FREQ=${recurrenceFrequency.toUpperCase()};INTERVAL=1`
+          : undefined,
+        next_occurrence_date: isRecurring ? nextDate : undefined,
       });
     },
     [
@@ -153,6 +175,8 @@ export function CreateExpenseSheet({
       paidByUserId,
       computedSplits,
       onSubmit,
+      isRecurring,
+      recurrenceFrequency,
     ]
   );
 
@@ -165,6 +189,8 @@ export function CreateExpenseSheet({
     setParticipants(members.map((m) => m.user_id));
     setCustomAmounts({});
     setPercentages({});
+    setIsRecurring(false);
+    setRecurrenceFrequency("monthly");
   }, [currentUserId, members]);
 
   const handleClose = useCallback(() => {
@@ -336,6 +362,47 @@ export function CreateExpenseSheet({
           )}
         </View>
 
+        {/* Recurring */}
+        <View style={styles.section}>
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>Recurring expense</Text>
+            <Switch
+              value={isRecurring}
+              onValueChange={setIsRecurring}
+              trackColor={{ true: colors.primary }}
+            />
+          </View>
+
+          {isRecurring && (
+            <>
+              <Text style={styles.recurringNote}>
+                A draft will be generated automatically on schedule. You'll confirm each occurrence.
+              </Text>
+              <View style={styles.splitModeRow}>
+                {(["daily", "weekly", "monthly"] as RecurrenceFrequency[]).map((freq) => (
+                  <Pressable
+                    key={freq}
+                    style={[
+                      styles.splitModeButton,
+                      recurrenceFrequency === freq && styles.splitModeButtonActive,
+                    ]}
+                    onPress={() => setRecurrenceFrequency(freq)}
+                  >
+                    <Text
+                      style={[
+                        styles.splitModeText,
+                        recurrenceFrequency === freq && styles.splitModeTextActive,
+                      ]}
+                    >
+                      {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
+
         {/* Actions */}
         <View style={styles.buttonRow}>
           <Button
@@ -346,9 +413,9 @@ export function CreateExpenseSheet({
             style={{ flex: 1 }}
           />
           <Button
-            title="Confirm"
+            title={isRecurring ? "Create Recurring" : "Confirm"}
             variant="primary"
-            onPress={() => handleSubmit("confirmed")}
+            onPress={() => handleSubmit(isRecurring ? "draft" : "confirmed")}
             loading={isSubmitting}
             style={{ flex: 1 }}
           />

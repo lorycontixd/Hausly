@@ -18,6 +18,9 @@ interface ExpenseCreate {
   splits: SplitInput[];
   status: "draft" | "confirmed";
   source?: "manual";
+  is_recurring?: boolean;
+  recurrence_rule?: string | null;
+  next_occurrence_date?: string | null;
 }
 
 interface SplitInput {

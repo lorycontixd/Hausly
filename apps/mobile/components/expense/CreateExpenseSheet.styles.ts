@@ -152,4 +152,19 @@ export const styles = StyleSheet.create({
     ...typography.body,
     color: colors.text,
   },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.sm,
+  },
+  toggleLabel: {
+    ...typography.body,
+    color: colors.text,
+  },
+  recurringNote: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginBottom: spacing.md,
+  },
 });

@@ -178,7 +178,7 @@ class TestEventWrappers:
             hh_id = uuid.uuid4()
             await svc.grocery_item_added(hh_id, {"id": "item-1", "name": "Bread"})
             svc.broadcast_to_household.assert_called_once_with(
-                hh_id, "grocery:item_added", {"id": "item-1", "name": "Bread"}
+                hh_id, "grocery_item_added", {"id": "item-1", "name": "Bread"}
             )
 
     @pytest.mark.anyio
@@ -192,7 +192,7 @@ class TestEventWrappers:
             hh_id = uuid.uuid4()
             await svc.expense_created(hh_id, {"id": "exp-1", "title": "Groceries"})
             svc.broadcast_to_household.assert_called_once_with(
-                hh_id, "expense:created", {"id": "exp-1", "title": "Groceries"}
+                hh_id, "expense_created", {"id": "exp-1", "title": "Groceries"}
             )
 
     @pytest.mark.anyio
@@ -204,10 +204,10 @@ class TestEventWrappers:
             svc = SignalRService()
             svc.broadcast_to_household = AsyncMock()
             hh_id = uuid.uuid4()
-            await svc.chore_completed(hh_id, "assign-1", "user-1")
+            await svc.assignment_completed(hh_id, "assign-1", "user-1")
             svc.broadcast_to_household.assert_called_once_with(
                 hh_id,
-                "chore:completed",
+                "assignment_completed",
                 {"assignment_id": "assign-1", "completed_by": "user-1"},
             )
 
@@ -220,7 +220,7 @@ class TestEventWrappers:
             svc = SignalRService()
             svc.broadcast_to_household = AsyncMock()
             hh_id = uuid.uuid4()
-            await svc.meal_removed(hh_id, "entry-1")
+            await svc.meal_entry_removed(hh_id, "entry-1")
             svc.broadcast_to_household.assert_called_once_with(
-                hh_id, "meal:removed", {"entry_id": "entry-1"}
+                hh_id, "meal_entry_removed", {"entry_id": "entry-1"}
             )

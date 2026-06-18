@@ -86,7 +86,7 @@ async def create_entry(
     # Owner is always the current user on create
     resp = MealEntryResponse.model_validate(entry)
     resp.owner_display_name = user.display_name
-    await signalr_service.meal_updated(household_id, resp.model_dump(mode="json"))
+    await signalr_service.meal_entry_created(household_id, resp.model_dump(mode="json"))
     return resp
 
 
@@ -106,7 +106,7 @@ async def update_entry(
     except MealError as e:
         _handle_service_error(e)
     resp = await _build_response(db, entry, user)
-    await signalr_service.meal_updated(household_id, resp.model_dump(mode="json"))
+    await signalr_service.meal_entry_updated(household_id, resp.model_dump(mode="json"))
     return resp
 
 
@@ -124,4 +124,4 @@ async def delete_entry(
         )
     except MealError as e:
         _handle_service_error(e)
-    await signalr_service.meal_removed(household_id, str(entry_id))
+    await signalr_service.meal_entry_removed(household_id, str(entry_id))

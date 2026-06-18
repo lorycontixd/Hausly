@@ -98,7 +98,7 @@ Out of scope for v1: Pinboard, Recipe book, AI features, Analytics dashboard.
 
 ---
 
-## Phase 1 — Backend: Database & Auth
+## Phase 1 — Backend: Database & Auth [completed]
 
 **Goal:** Set up PostgreSQL connection, SQLModel base, Alembic migrations, and Firebase auth middleware.
 
@@ -872,7 +872,7 @@ Focus on clean, friendly UI/UX.
 
 ---
 
-## Phase 15 — Mobile: Chore Module
+## Phase 15 — Mobile: Chore Module [completed]
 
 **Goal:** Chore list, creation, assignments, overdue handling, and completion.
 
@@ -914,9 +914,19 @@ Focus on clean, friendly UI/UX.
 - Complete/postpone/cancel work
 - Overdue blocking visible (no new assignments generated)
 
+### Completed:
+- Implemented full chore list screen with date-grouped assignments (Overdue, Today, Tomorrow, This Week, Later)
+- Created ChoreCreateSheet with recurring/rotation config, assignee multi-select, creator validation, and rotation frequency preview
+- Built ChoreAssignmentCard with overdue highlighting and conditional action buttons (Done/Postpone/Cancel)
+- Implemented all TanStack Query hooks for CRUD + assignment actions with cache invalidation
+- Chore Zustand store for sheet/action state management
+- PostponeSheet for date-picker on overdue rescheduling
+- SignalR handlers already in place from Phase 7 — query keys align perfectly
+- 18 passing tests covering grouping logic, rotation math, validation, and store state
+
 ---
 
-## Phase 16 — Integration Testing & Polish
+## Phase 16 — Integration Testing & Polish [completed]
 
 **Goal:** End-to-end flows work correctly, cross-module integration verified.
 
@@ -951,6 +961,14 @@ Focus on clean, friendly UI/UX.
 - Cross-module flows work end-to-end
 - No broken states on network errors
 - App is usable with poor connectivity (offline queuing works)
+
+### Completed:
+- Fixed SignalR event name mismatch: backend now emits underscore-separated events matching mobile client expectations (e.g., `grocery_item_added` instead of `grocery:item_added`).
+- Renamed structural event mismatches: `meal:updated` → `meal_entry_created`/`meal_entry_updated`, `chore:completed` → `assignment_completed`, `chore:assignment_updated` → `assignment_updated`.
+- Added new `meal_entry_created` event wrapper for create operations.
+- Wrote comprehensive cross-module integration tests (`test_integration.py`): grocery→expense chain, member leave cleanup, meal headcount defaults, recurring expense generation with staleness cap, chore overdue blocking, error handling edge cases.
+- All 236 backend tests pass, all 216 mobile tests pass.
+- Fixed pre-existing mobile SignalR test count mismatch for `household_settings_updated` handler.
 
 ---
 

@@ -31,13 +31,20 @@ When a task requires reading project documentation:
 - When code changes are made, update the relative README.md, CHANGELOG.md, and docs/planning/hausly-project-master-plan.md if the change impacts product scope, architecture, or non-negotiable rules. Keep edits minimal. 
 
 ### Versioning
-- Version architecture: semantic versioning with MAJOR.MINOR.PATCH
-- API and mobile frontend have separate versioning:
-	- API version is defined in `apps/api/app.py` and used in all route prefixes.
-	- Mobile version is defined in `apps/mobile/app.json` and used for app store releases.
-	- Keep both versions inside documentation files: README.md, docs/planning/hausly-project-master-plan.md, and any relevant docs/logics/ files.
-- When a change is user-facing or impacts the public API, propose a version bump in the documentation and suggest a new version number based on the type of change (MAJOR for breaking changes, MINOR for new features, PATCH for bug fixes).
-- Keep versioning in sync between the codebase and documentation for both API and mobile.
+- Version architecture: semantic versioning with MAJOR.MINOR.PATCH.
+- API and mobile have **separate** version numbers (they can diverge):
+	- **API source of truth:** `apps/api/pyproject.toml` → `version` field. Code reads it at runtime via `hausly.version.__version__` (uses `importlib.metadata`). Never hardcode the version string elsewhere in Python code.
+	- **Mobile source of truth:** `apps/mobile/app.json` → `expo.version` field. Code reads it at runtime via `constants/version.ts` (uses `expo-constants`). Keep `apps/mobile/package.json` `version` in sync manually.
+- **Where versions must stay aligned:**
+	- `README.md` (Versions table)
+	- `docs/planning/hausly-project-master-plan.md` (if it references versions)
+	- `CHANGELOG.md` (entry header)
+- When a change is user-facing or impacts the public API, **propose a version bump** and suggest a new version number based on the change type:
+	- MAJOR: breaking/incompatible API changes
+	- MINOR: new features, non-breaking additions
+	- PATCH: bug fixes, minor improvements
+- After bumping a version, update **all** locations listed above in the same commit.
+- Do not hardcode version strings in application code — always read from the source of truth file.
 
 ## Plan-Guard Agent Workflow
 Use the Plan Guard agent before implementation when a task impacts one or more of the following:

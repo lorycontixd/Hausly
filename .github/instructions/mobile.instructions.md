@@ -84,6 +84,14 @@ export function useAddGroceryItem(householdId: string) {
 - Auth guard in `app/_layout.tsx` — redirect unauthenticated users.
 - Tab visibility driven by `household.settings.enabled_modules`.
 
+## Versioning
+
+- Source of truth: `apps/mobile/app.json` → `expo.version` field.
+- Runtime access: `import { APP_VERSION } from "@/constants/version"` (reads via `expo-constants`).
+- Keep `apps/mobile/package.json` `version` in sync with `app.json`.
+- Never hardcode version strings in TypeScript code. Always import from `constants/version`.
+- When bumping, also update: `README.md` (Versions table), `CHANGELOG.md`, `package.json`.
+
 ## Commit Messages
 
 Prefix: `mobile:` (e.g., `mobile: implement grocery list screen`)

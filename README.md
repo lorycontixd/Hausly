@@ -2,6 +2,13 @@
 
 A mobile companion app for people who share a living space. Manages groceries, expenses, meal planning, and chores with cross-module intelligence.
 
+## Versions
+
+| Component | Version | Source of Truth |
+|-----------|---------|-----------------|
+| API | 0.1.0 | `apps/api/pyproject.toml` |
+| Mobile | 0.1.0 | `apps/mobile/app.json` |
+
 ## Architecture
 
 - **Mobile:** React Native + Expo (TypeScript)

@@ -27,6 +27,25 @@ def _handle_service_error(e: ChoreError) -> None:
     raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
+async def _build_chore_response(db: AsyncSession, chore) -> ChoreResponse:
+    """Build a ChoreResponse with enriched assignees."""
+    enriched_assignees = await service.enrich_assignees(db, chore.assignees)
+    return ChoreResponse.model_validate({
+        "id": chore.id,
+        "household_id": chore.household_id,
+        "name": chore.name,
+        "created_by_user_id": chore.created_by_user_id,
+        "is_recurring": chore.is_recurring,
+        "recurrence_interval": chore.recurrence_interval,
+        "recurrence_unit": chore.recurrence_unit,
+        "start_date": chore.start_date,
+        "rotation_enabled": chore.rotation_enabled,
+        "is_active": chore.is_active,
+        "created_at": chore.created_at,
+        "assignees": enriched_assignees,
+    })
+
+
 @router.get("", response_model=list[ChoreResponse])
 async def list_chores(
     household_id: uuid.UUID,
@@ -35,7 +54,7 @@ async def list_chores(
     db: AsyncSession = Depends(get_db),
 ) -> list[ChoreResponse]:
     chores = await service.get_chores(db, household_id)
-    return [ChoreResponse.model_validate(c) for c in chores]
+    return [await _build_chore_response(db, c) for c in chores]
 
 
 @router.post("", response_model=ChoreResponse, status_code=201)
@@ -50,7 +69,7 @@ async def create_chore(
         chore = await service.create_chore(db, household_id, user.id, data)
     except ChoreError as e:
         _handle_service_error(e)
-    resp = ChoreResponse.model_validate(chore)
+    resp = await _build_chore_response(db, chore)
     await signalr_service.chore_created(household_id, resp.model_dump(mode="json"))
     return resp
 
@@ -70,7 +89,8 @@ async def list_assignments(
         db, household_id, status=status, user_id=user_id,
         start_date=start_date, end_date=end_date,
     )
-    return [AssignmentResponse.model_validate(a) for a in assignments]
+    enriched = await service.enrich_assignments(db, assignments)
+    return [AssignmentResponse.model_validate(e) for e in enriched]
 
 
 @router.get("/{chore_id}", response_model=ChoreResponse)
@@ -85,7 +105,7 @@ async def get_chore(
         chore = await service.get_chore(db, household_id, chore_id)
     except ChoreError as e:
         _handle_service_error(e)
-    return ChoreResponse.model_validate(chore)
+    return await _build_chore_response(db, chore)
 
 
 @router.patch("/{chore_id}", response_model=ChoreResponse)
@@ -101,7 +121,7 @@ async def update_chore(
         chore = await service.update_chore(db, household_id, chore_id, data)
     except ChoreError as e:
         _handle_service_error(e)
-    return ChoreResponse.model_validate(chore)
+    return await _build_chore_response(db, chore)
 
 
 @router.delete("/{chore_id}", status_code=204)
@@ -131,10 +151,12 @@ async def complete_assignment(
         assignment = await service.complete_assignment(db, household_id, assignment_id, user.id)
     except ChoreError as e:
         _handle_service_error(e)
-    await signalr_service.chore_completed(
+    enriched = await service.enrich_assignment(db, assignment)
+    resp = AssignmentResponse.model_validate(enriched)
+    await signalr_service.assignment_completed(
         household_id, str(assignment_id), str(user.id)
     )
-    return AssignmentResponse.model_validate(assignment)
+    return resp
 
 
 @router.post("/assignments/{assignment_id}/postpone", response_model=AssignmentResponse)
@@ -152,8 +174,9 @@ async def postpone_assignment(
         )
     except ChoreError as e:
         _handle_service_error(e)
-    resp = AssignmentResponse.model_validate(assignment)
-    await signalr_service.chore_assignment_updated(household_id, resp.model_dump(mode="json"))
+    enriched = await service.enrich_assignment(db, assignment)
+    resp = AssignmentResponse.model_validate(enriched)
+    await signalr_service.assignment_updated(household_id, resp.model_dump(mode="json"))
     return resp
 
 
@@ -169,6 +192,7 @@ async def cancel_assignment(
         assignment = await service.cancel_assignment(db, household_id, assignment_id)
     except ChoreError as e:
         _handle_service_error(e)
-    resp = AssignmentResponse.model_validate(assignment)
-    await signalr_service.chore_assignment_updated(household_id, resp.model_dump(mode="json"))
+    enriched = await service.enrich_assignment(db, assignment)
+    resp = AssignmentResponse.model_validate(enriched)
+    await signalr_service.assignment_updated(household_id, resp.model_dump(mode="json"))
     return resp

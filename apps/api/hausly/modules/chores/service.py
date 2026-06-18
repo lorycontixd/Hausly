@@ -6,6 +6,7 @@ from hausly.modules.chores.models import (AssignmentStatus, Chore,
                                           ChoreAssignee, ChoreAssignment,
                                           RecurrenceUnit)
 from hausly.modules.chores.schemas import ChoreCreate, ChoreUpdate
+from hausly.modules.users.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
@@ -79,6 +80,113 @@ async def _assignment_exists(
     )
     result = await db.execute(stmt)
     return result.scalar_one_or_none() is not None
+
+
+async def _get_user_display_name(db: AsyncSession, user_id: uuid.UUID) -> str:
+    """Look up a user's display_name."""
+    stmt = select(User.display_name).where(User.id == user_id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() or "Unknown"
+
+
+async def _build_user_name_map(
+    db: AsyncSession, user_ids: set[uuid.UUID]
+) -> dict[uuid.UUID, str]:
+    """Batch-load display names for a set of user IDs."""
+    if not user_ids:
+        return {}
+    stmt = select(User.id, User.display_name).where(User.id.in_(user_ids))
+    result = await db.execute(stmt)
+    return {row.id: row.display_name for row in result.all()}
+
+
+async def enrich_assignment(
+    db: AsyncSession, assignment: ChoreAssignment
+) -> dict:
+    """Enrich a single assignment with chore_name and display names."""
+    chore_stmt = select(Chore.name).where(Chore.id == assignment.chore_id)
+    chore_result = await db.execute(chore_stmt)
+    chore_name = chore_result.scalar_one_or_none() or "Unknown"
+
+    user_ids: set[uuid.UUID] = {assignment.assigned_to_user_id}
+    if assignment.completed_by_user_id:
+        user_ids.add(assignment.completed_by_user_id)
+    name_map = await _build_user_name_map(db, user_ids)
+
+    data = {
+        "id": assignment.id,
+        "chore_id": assignment.chore_id,
+        "chore_name": chore_name,
+        "household_id": assignment.household_id,
+        "assigned_to_user_id": assignment.assigned_to_user_id,
+        "assigned_to_display_name": name_map.get(assignment.assigned_to_user_id, "Unknown"),
+        "due_date": assignment.due_date,
+        "postponed_to": assignment.postponed_to,
+        "status": assignment.status,
+        "completed_at": assignment.completed_at,
+        "completed_by_user_id": assignment.completed_by_user_id,
+        "completed_by_display_name": name_map.get(assignment.completed_by_user_id) if assignment.completed_by_user_id else None,
+        "created_at": assignment.created_at,
+    }
+    return data
+
+
+async def enrich_assignments(
+    db: AsyncSession, assignments: list[ChoreAssignment]
+) -> list[dict]:
+    """Enrich a list of assignments with chore names and display names."""
+    if not assignments:
+        return []
+
+    chore_ids = {a.chore_id for a in assignments}
+    chore_stmt = select(Chore.id, Chore.name).where(Chore.id.in_(chore_ids))
+    chore_result = await db.execute(chore_stmt)
+    chore_name_map = {row.id: row.name for row in chore_result.all()}
+
+    user_ids: set[uuid.UUID] = set()
+    for a in assignments:
+        user_ids.add(a.assigned_to_user_id)
+        if a.completed_by_user_id:
+            user_ids.add(a.completed_by_user_id)
+    name_map = await _build_user_name_map(db, user_ids)
+
+    enriched = []
+    for a in assignments:
+        enriched.append({
+            "id": a.id,
+            "chore_id": a.chore_id,
+            "chore_name": chore_name_map.get(a.chore_id, "Unknown"),
+            "household_id": a.household_id,
+            "assigned_to_user_id": a.assigned_to_user_id,
+            "assigned_to_display_name": name_map.get(a.assigned_to_user_id, "Unknown"),
+            "due_date": a.due_date,
+            "postponed_to": a.postponed_to,
+            "status": a.status,
+            "completed_at": a.completed_at,
+            "completed_by_user_id": a.completed_by_user_id,
+            "completed_by_display_name": name_map.get(a.completed_by_user_id) if a.completed_by_user_id else None,
+            "created_at": a.created_at,
+        })
+    return enriched
+
+
+async def enrich_assignees(
+    db: AsyncSession, assignees: list[ChoreAssignee]
+) -> list[dict]:
+    """Enrich assignees with display names."""
+    if not assignees:
+        return []
+    user_ids = {a.user_id for a in assignees}
+    name_map = await _build_user_name_map(db, user_ids)
+    return [
+        {
+            "id": a.id,
+            "user_id": a.user_id,
+            "display_name": name_map.get(a.user_id, "Unknown"),
+            "position": a.position,
+        }
+        for a in assignees
+    ]
 
 
 async def generate_assignments(
