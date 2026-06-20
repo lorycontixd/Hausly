@@ -16,7 +16,7 @@
     "@microsoft/signalr": "^8.0.0",
     "@react-native-firebase/analytics": "^21.14.0",
     "@react-native-firebase/app": "^21.0.0",
-    "@react-native-firebase/auth": "^21.0.0",
+    "@react-native-firebase/auth": "^24.1.1",
     "@react-native-firebase/crashlytics": "^21.14.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "@react-navigation/bottom-tabs": "^7.0.0",
